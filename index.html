@@ -2,115 +2,122 @@
 <html lang='fr'>
 <head>
     <meta charset='utf-8' />
-    <title>L'Atelier Capillaire | Gestion</title>
+    <title>L'Atelier Capillaire | Dashboard Pro</title>
     
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
-            --primary: #2563eb;
-            --bg: #f1f5f9;
-            --card: #ffffff;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #f8fafc;
+            --text-main: #1e293b;
+            --event-bg: #eef2ff;
+            --event-text: #4338ca;
         }
 
         body { 
-            font-family: 'Inter', sans-serif; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
             background-color: var(--bg); 
-            margin: 0; padding: 20px;
+            margin: 0; padding: 20px; color: var(--text-main);
         }
 
         .container { 
-            max-width: 1200px; 
+            max-width: 1300px; 
             margin: 0 auto; 
-            background: var(--card); 
-            padding: 25px; 
-            border-radius: 16px; 
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); 
+            background: #ffffff; 
+            padding: 30px; 
+            border-radius: 24px; 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
         }
 
-        h2 { color: #1e293b; text-align: left; margin-bottom: 25px; font-weight: 600; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        h2 { font-size: 1.8rem; font-weight: 700; margin: 0; letter-spacing: -0.025em; }
 
-        /* Style des Boutons */
+        /* --- STYLE DU CALENDRIER --- */
+        .fc { border: none !important; }
+        .fc-theme-standard td, .fc-theme-standard th { border: 1px solid #f1f5f9 !important; }
+        
+        /* En-tête des jours */
+        .fc-col-header-cell { background: #f8fafc; padding: 12px 0 !important; }
+        .fc-col-header-cell-cushion { color: #64748b !important; font-weight: 600 !important; text-decoration: none !important; }
+
+        /* Boutons stylés */
         .fc-button {
             background: #fff !important;
-            color: #475569 !important;
+            color: #1e293b !important;
             border: 1px solid #e2e8f0 !important;
-            font-weight: 500 !important;
-            text-transform: capitalize !important;
-            transition: all 0.2s !important;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+            border-radius: 10px !important;
+            padding: 8px 16px !important;
+            font-weight: 600 !important;
+            transition: all 0.2s ease !important;
         }
+        .fc-button-active { background: var(--primary) !important; color: #fff !important; border-color: var(--primary) !important; }
+        .fc-button:hover { border-color: var(--primary) !important; transform: translateY(-1px); }
 
-        .fc-button-active {
-            background: var(--primary) !important;
-            color: #fff !important;
-            border-color: var(--primary) !important;
-        }
-
-        .fc-button:hover { background: #f8fafc !important; }
-
-        /* Style des événements */
+        /* --- ÉVÉNEMENTS (RDV) --- */
         .fc-event {
-            border-radius: 6px !important;
-            padding: 4px 8px !important;
             border: none !important;
-            background-color: #dbeafe !important;
-            color: #1e40af !important;
-            font-size: 0.85em !important;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--primary) !important;
+            background: var(--event-bg) !important;
+            color: var(--event-text) !important;
+            padding: 5px 10px !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease-in-out !important;
+        }
+        .fc-event:hover {
+            transform: scale(1.02);
+            filter: brightness(0.95);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
         }
 
-        .fc-event-title { font-weight: 600; }
-
-        /* Modal / Pop-up */
+        /* --- MODAL DE DÉTAILS --- */
         #detailsModal {
-            display: none;
-            position: fixed;
-            top: 50%; left: 50%;
+            display: none; position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
-            z-index: 1000;
-            min-width: 300px;
+            background: white; padding: 0; border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            z-index: 1001; width: 400px; overflow: hidden;
+            animation: fadeIn 0.3s ease;
         }
+        @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -45%); } to { opacity: 1; transform: translate(-50%, -50%); } }
 
+        .modal-header { background: var(--primary); color: white; padding: 20px; font-weight: 700; font-size: 1.1rem; }
+        .modal-body { padding: 25px; }
+        .detail-row { display: flex; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
+        .detail-label { width: 120px; color: #64748b; font-size: 0.9rem; font-weight: 500; }
+        .detail-value { font-weight: 600; color: #1e293b; }
+        
         #overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000;
         }
 
-        .modal-header { font-weight: 600; font-size: 1.2em; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .modal-body p { margin: 8px 0; color: #4b5563; }
         .close-btn { 
-            margin-top: 15px;
-            width: 100%;
-            background: var(--primary);
-            color: white; border: none; padding: 10px;
-            border-radius: 6px; cursor: pointer;
+            width: 100%; border: none; padding: 15px; background: #f1f5f9;
+            color: #1e293b; font-weight: 700; cursor: pointer; transition: 0.2s;
         }
+        .close-btn:hover { background: #e2e8f0; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>📅 Planning L'Atelier Capillaire</h2>
+        <header>
+            <h2>📅 Planning L'Atelier Capillaire</h2>
+        </header>
         <div id='calendar'></div>
     </div>
 
     <div id="overlay"></div>
     <div id="detailsModal">
-        <div class="modal-header">Détails du Rendez-vous</div>
+        <div class="modal-header">Fiche Rendez-vous</div>
         <div class="modal-body" id="modalContent"></div>
-        <button class="close-btn" onclick="closeModal()">Fermer</button>
+        <button class="close-btn" onclick="closeModal()">Fermer la fenêtre</button>
     </div>
 
     <script>
@@ -120,16 +127,15 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('calendar');
-            
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'timeGridWeek',
                 locale: 'fr',
                 timeZone: 'Europe/Paris',
-                firstDay: 1, 
-                hiddenDays: [0, 6], // Cache Dimanche (0) et Samedi (6)
-                slotMinTime: '08:30:00',
-                slotMaxTime: '19:30:00',
-                expandRows: true,
+                firstDay: 1, // Lundi
+                allDaySlot: false,
+                slotMinTime: '08:00:00',
+                slotMaxTime: '20:00:00',
+                height: 'auto',
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
@@ -137,14 +143,16 @@
                 },
                 buttonText: { today: "Aujourd'hui", month: "Mois", week: "Semaine", day: "Jour" },
                 
-                // Au clic sur un événement
                 eventClick: function(info) {
-                    const props = info.event.extendedProps;
+                    const p = info.event.extendedProps;
+                    const options = { hour: '2-digit', minute: '2-digit' };
+                    
                     const content = `
-                        <p><strong>Client :</strong> ${props.clientName}</p>
-                        <p><strong>Service :</strong> ${props.serviceName}</p>
-                        <p><strong>Téléphone :</strong> ${props.phone}</p>
-                        <p><strong>Début :</strong> ${info.event.start.toLocaleTimeString('fr-FR')}</p>
+                        <div class="detail-row"><div class="detail-label">Client</div><div class="detail-value">${p.name}</div></div>
+                        <div class="detail-row"><div class="detail-label">Téléphone</div><div class="detail-value">${p.phone}</div></div>
+                        <div class="detail-row"><div class="detail-label">Service</div><div class="detail-value">${p.service}</div></div>
+                        <div class="detail-row"><div class="detail-label">Début</div><div class="detail-value">${info.event.start.toLocaleTimeString('fr-FR', options)}</div></div>
+                        <div class="detail-row"><div class="detail-label">Fin</div><div class="detail-value">${info.event.end.toLocaleTimeString('fr-FR', options)}</div></div>
                     `;
                     document.getElementById('modalContent').innerHTML = content;
                     document.getElementById('detailsModal').style.display = 'block';
@@ -155,33 +163,26 @@
                     try {
                         const { data, error } = await supabaseClient
                             .from('appointments')
-                            .select(`
-                                start_time, end_time,
-                                clients ( name, phone_number ),
-                                services ( name )
-                            `)
+                            .select('start_time, end_time, clients(name, phone_number), services(name)')
                             .neq('status', 'cancelled');
 
                         if (error) throw error;
 
-                        const events = data.map(appt => ({
+                        successCallback(data.map(appt => ({
                             title: `${appt.clients?.name} - ${appt.services?.name}`,
                             start: appt.start_time,
                             end: appt.end_time,
                             extendedProps: {
-                                clientName: appt.clients?.name,
-                                serviceName: appt.services?.name,
-                                phone: appt.clients?.phone_number || 'Non renseigné'
+                                name: appt.clients?.name || 'Inconnu',
+                                phone: appt.clients?.phone_number || 'Non renseigné',
+                                service: appt.services?.name || 'Prestation'
                             }
-                        }));
-                        successCallback(events);
+                        })));
                     } catch (err) {
-                        console.error(err);
                         failureCallback(err);
                     }
                 }
             });
-
             calendar.render();
         });
 
