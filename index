@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang='fr'>
+<head>
+    <meta charset='utf-8' />
+    <title>Planning L'Atelier Capillaire</title>
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f9; }
+        #calendar { max-width: 1100px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; }
+    </style>
+</head>
+<body>
+    <h2>📅 Planning des Rendez-vous</h2>
+    <div id='calendar'></div>
+
+    <script>
+        // CONFIGURATION SUPABASE
+        const SUPABASE_URL = 'https://ysxawicsmdpirvalczmv.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_GgDD8xm-IDHVVRvC-js2WA_WSZe0iCp';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek', // Vue par semaine avec horaires
+                locale: 'fr',
+                slotMinTime: '08:00:00', // Heure de début
+                slotMaxTime: '20:00:00', // Heure de fin
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: async function(info, successCallback, failureCallback) {
+                    // RÉCUPÉRATION DES DONNÉES
+                    const { data, error } = await supabase
+                        .from('appointments')
+                        .select(`
+                            id, 
+                            start_time, 
+                            end_time, 
+                            status,
+                            clients (name),
+                            services (name)
+                        `)
+                        .neq('status', 'cancelled');
+
+                    if (error) { 
+                        console.error(error); 
+                        failureCallback(error); 
+                        return; 
+                    }
+
+                    // FORMATAGE POUR LE CALENDRIER
+                    const events = data.map(appt => ({
+                        id: appt.id,
+                        title: `${appt.clients?.name || 'Anonyme'} - ${appt.services?.name || 'Prestation'}`,
+                        start: appt.start_time,
+                        end: appt.end_time,
+                        backgroundColor: appt.status === 'scheduled' ? '#3498db' : '#2ecc71',
+                        borderColor: '#2980b9'
+                    }));
+
+                    successCallback(events);
+                }
+            });
+
+            calendar.render();
+        });
+    </script>
+</body>
+</html>
