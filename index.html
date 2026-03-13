@@ -7,12 +7,10 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; padding: 20px; }
-        .container { max-width: 1100px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        h2 { color: #2c3e50; text-align: center; margin-bottom: 20px; }
-        #calendar { background: #ffffff; }
-        /* Style des événements */
-        .fc-event { cursor: pointer; border: none !important; padding: 2px; }
+        body { font-family: sans-serif; background-color: #f8f9fa; padding: 20px; }
+        .container { max-width: 1100px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; }
+        #calendar { margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -23,12 +21,12 @@
     </div>
 
     <script>
-        // CONFIGURATION SUPABASE
-        const SUPABASE_URL = 'https://ysxawicsmdpirvalczmv.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_GgDD8xm-IDHVVRvC-js2WA_WSZe0iCp';
+        // Utilisation de noms de variables uniques pour éviter les erreurs de syntaxe
+        const SB_URL = 'https://ysxawicsmdpirvalczmv.supabase.co';
+        const SB_KEY = 'sb_publishable_GgDD8xm-IDHVVRvC-js2WA_WSZe0iCp';
         
-        // Initialisation du client avec un nom unique pour éviter les conflits
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Initialisation du client avec un nom différent de la bibliothèque
+        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
         document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('calendar');
@@ -37,29 +35,18 @@
                 initialView: 'timeGridWeek',
                 locale: 'fr',
                 timeZone: 'Europe/Paris',
-                firstDay: 1, // Commence le lundi
-                slotMinTime: '08:00:00', // Ouverture salon
-                slotMaxTime: '20:00:00', // Fermeture salon
-                allDaySlot: false,
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
-                buttonText: {
-                    today: "Aujourd'hui",
-                    month: "Mois",
-                    week: "Semaine",
-                    day: "Jour"
-                },
                 events: async function(info, successCallback, failureCallback) {
                     try {
-                        const { data, error } = await _supabase
+                        const { data, error } = await supabaseClient
                             .from('appointments')
                             .select(`
                                 start_time, 
                                 end_time, 
-                                status,
                                 clients ( name ),
                                 services ( name )
                             `)
@@ -68,16 +55,15 @@
                         if (error) throw error;
 
                         const events = data.map(appt => ({
-                            title: `${appt.clients?.name || 'Client'} - ${appt.services?.name || 'Prestation'}`,
+                            title: `${appt.clients?.name || 'Client'} - ${appt.services?.name || 'Service'}`,
                             start: appt.start_time,
                             end: appt.end_time,
-                            backgroundColor: '#3498db',
-                            borderColor: '#2980b9'
+                            backgroundColor: '#3498db'
                         }));
 
                         successCallback(events);
                     } catch (err) {
-                        console.error("Erreur chargement RDV:", err);
+                        console.error("Erreur de chargement:", err);
                         failureCallback(err);
                     }
                 }
