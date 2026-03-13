@@ -12,7 +12,6 @@
     <style>
         :root {
             --brand-dark: #0f172a;
-            --brand-accent: #4f46e5;
             --brand-bg: #f8fafc;
         }
 
@@ -36,26 +35,31 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
 
-        /* --- STYLE DES RDV (L'ÉLÉMENT BLANC) --- */
+        /* --- STYLE DES HEURES (COLONNE DE GAUCHE) --- */
+        .fc-timegrid-slot-label-cushion, .fc-timegrid-axis-cushion {
+            color: var(--brand-dark) !important; /* Heures en noir */
+            font-weight: 700 !important;
+        }
+
+        /* --- STYLE DES RDV --- */
         .fc-v-event {
             background-color: #ffffff !important;
             border: 1px solid #e2e8f0 !important;
-            border-left: 5px solid var(--brand-accent) !important;
+            border-left: 5px solid var(--brand-dark) !important;
             border-radius: 8px !important;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
         }
 
         .fc-event-main { padding: 4px !important; }
         
-        /* Texte à l'intérieur du RDV */
         .fc-event-title {
-            color: #1e293b !important; /* Noir/Gris foncé pour la visibilité */
+            color: var(--brand-dark) !important; 
             font-weight: 700 !important;
             font-size: 0.85rem !important;
-            white-space: normal !important; /* Permet le retour à la ligne */
+            white-space: normal !important;
         }
 
-        /* --- BOUTONS (FIX COULEUR BLANCHE) --- */
+        /* --- BOUTONS (COULEUR ATELIER CAPILLAIRE) --- */
         .fc-button {
             background: white !important;
             color: var(--brand-dark) !important;
@@ -66,15 +70,15 @@
         }
 
         .fc-button-active {
-            background: var(--brand-accent) !important;
-            color: white !important; /* Texte blanc quand actif */
-            border-color: var(--brand-accent) !important;
+            background: var(--brand-dark) !important; /* NOIR AU LIEU DE BLEU */
+            color: white !important;
+            border-color: var(--brand-dark) !important;
         }
 
-        /* --- EN-TÊTES EN GRAS --- */
+        /* --- EN-TÊTES --- */
         .fc-col-header-cell-cushion {
             color: var(--brand-dark) !important;
-            font-weight: 800 !important; /* GRAS */
+            font-weight: 800 !important;
             text-transform: capitalize;
             padding: 10px 0 !important;
             text-decoration: none !important;
@@ -103,7 +107,7 @@
 
         .close-btn { 
             width: 100%; border: none; padding: 18px; background: #f8fafc;
-            font-weight: 800; color: var(--brand-accent); cursor: pointer;
+            font-weight: 800; color: var(--brand-dark); cursor: pointer;
         }
     </style>
 </head>
@@ -136,8 +140,8 @@
                 timeZone: 'Europe/Paris',
                 firstDay: 1, 
                 allDaySlot: false,
-                slotMinTime: '09:00:00', // HEURE DÉBUT
-                slotMaxTime: '19:00:00', // HEURE FIN
+                slotMinTime: '09:00:00',
+                slotMaxTime: '19:00:00',
                 height: 'auto',
                 headerToolbar: {
                     left: 'prev,next today',
