@@ -2,19 +2,18 @@
 <html lang='fr'>
 <head>
     <meta charset='utf-8' />
-    <title>L'Atelier Capillaire | Dashboard Premium</title>
+    <title>L'Atelier Capillaire | Dashboard Final</title>
     
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
-            --brand-dark: #0f172a;    /* Ardoise sombre */
-            --brand-accent: #6366f1;  /* Indigo Pro */
-            --brand-bg: #f8fafc;      /* Gris très clair */
-            --event-fill: #ffffff;    /* Blanc pur pour le contenu rdv */
+            --brand-dark: #0f172a;
+            --brand-accent: #4f46e5;
+            --brand-bg: #f8fafc;
         }
 
         html, body { 
@@ -26,73 +25,59 @@
         }
 
         .container { padding: 20px; box-sizing: border-box; }
-
-        header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            margin-bottom: 25px; padding: 0 10px;
-        }
-
-        h2 { font-size: 1.6rem; font-weight: 800; color: var(--brand-dark); letter-spacing: -0.5px; }
+        header { margin-bottom: 20px; padding: 0 10px; }
+        h2 { font-size: 1.6rem; font-weight: 800; color: var(--brand-dark); }
 
         /* --- CALENDRIER --- */
         #calendar {
             background: white;
             border-radius: 20px;
             padding: 15px;
-            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
-            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
 
-        /* Style des créneaux de RDV */
+        /* --- STYLE DES RDV (L'ÉLÉMENT BLANC) --- */
         .fc-v-event {
-            background-color: white !important;
-            border: none !important;
-            border-left: 4px solid var(--brand-accent) !important;
-            border-radius: 10px !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
-            margin: 1px 0 !important;
+            background-color: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            border-left: 5px solid var(--brand-accent) !important;
+            border-radius: 8px !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
         }
 
-        .fc-event-main {
-            padding: 6px !important;
-        }
-
+        .fc-event-main { padding: 4px !important; }
+        
+        /* Texte à l'intérieur du RDV */
         .fc-event-title {
-            color: var(--brand-dark) !important;
+            color: #1e293b !important; /* Noir/Gris foncé pour la visibilité */
             font-weight: 700 !important;
-            font-size: 0.9rem !important;
+            font-size: 0.85rem !important;
+            white-space: normal !important; /* Permet le retour à la ligne */
         }
 
-        /* Boutons de navigation Modernes */
+        /* --- BOUTONS (FIX COULEUR BLANCHE) --- */
         .fc-button {
             background: white !important;
             color: var(--brand-dark) !important;
             border: 1px solid #e2e8f0 !important;
-            border-radius: 12px !important;
-            padding: 10px 20px !important;
-            font-weight: 600 !important;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
+            border-radius: 10px !important;
+            font-weight: 700 !important;
+            transition: all 0.2s !important;
         }
 
         .fc-button-active {
-            background: var(--brand-dark) !important;
-            color: white !important;
-            border-color: var(--brand-dark) !important;
-        }
-
-        .fc-button:hover {
+            background: var(--brand-accent) !important;
+            color: white !important; /* Texte blanc quand actif */
             border-color: var(--brand-accent) !important;
-            background: #fdfdfd !important;
         }
 
-        /* En-tête des colonnes */
+        /* --- EN-TÊTES EN GRAS --- */
         .fc-col-header-cell-cushion {
-            color: #64748b !important;
-            font-weight: 600 !important;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
+            color: var(--brand-dark) !important;
+            font-weight: 800 !important; /* GRAS */
+            text-transform: capitalize;
+            padding: 10px 0 !important;
+            text-decoration: none !important;
         }
 
         /* --- MODAL --- */
@@ -100,37 +85,25 @@
             display: none; position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             background: white; border-radius: 24px;
-            box-shadow: 0 30px 60px -12px rgba(0,0,0,0.25);
-            z-index: 2000; width: 90%; max-width: 420px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            z-index: 2000; width: 90%; max-width: 400px;
             overflow: hidden;
         }
 
-        .modal-header { 
-            background: var(--brand-dark); color: white; 
-            padding: 24px; font-weight: 700; font-size: 1.2rem;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-
-        .modal-body { padding: 30px; }
-        
-        .detail-row { 
-            display: flex; flex-direction: column; 
-            margin-bottom: 18px; border-bottom: 1px solid #f1f5f9; 
-            padding-bottom: 10px; 
-        }
-        
-        .detail-label { color: #94a3b8; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
-        .detail-value { font-weight: 700; color: var(--brand-dark); font-size: 1.1rem; }
+        .modal-header { background: var(--brand-dark); color: white; padding: 20px; font-weight: 800; }
+        .modal-body { padding: 25px; }
+        .detail-row { display: flex; flex-direction: column; margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
+        .detail-label { color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .detail-value { font-weight: 700; color: var(--brand-dark); font-size: 1rem; margin-top: 2px; }
         
         #overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 1000;
+            background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); z-index: 1000;
         }
 
         .close-btn { 
-            width: 100%; border: none; padding: 20px; background: #f8fafc;
-            font-weight: 800; font-size: 1rem; color: var(--brand-accent);
-            cursor: pointer; border-top: 1px solid #f1f5f9;
+            width: 100%; border: none; padding: 18px; background: #f8fafc;
+            font-weight: 800; color: var(--brand-accent); cursor: pointer;
         }
     </style>
 </head>
@@ -145,7 +118,7 @@
 
     <div id="overlay" onclick="closeModal()"></div>
     <div id="detailsModal">
-        <div class="modal-header">Détails du RDV</div>
+        <div class="modal-header">Fiche Rendez-vous</div>
         <div class="modal-body" id="modalContent"></div>
         <button class="close-btn" onclick="closeModal()">FERMER</button>
     </div>
@@ -163,8 +136,8 @@
                 timeZone: 'Europe/Paris',
                 firstDay: 1, 
                 allDaySlot: false,
-                slotMinTime: '08:30:00',
-                slotMaxTime: '19:30:00',
+                slotMinTime: '09:00:00', // HEURE DÉBUT
+                slotMaxTime: '19:00:00', // HEURE FIN
                 height: 'auto',
                 headerToolbar: {
                     left: 'prev,next today',
@@ -205,7 +178,7 @@
                         if (error) throw error;
 
                         successCallback(data.map(appt => ({
-                            title: `${appt.clients?.name} | ${appt.services?.name}`,
+                            title: `${appt.clients?.name} - ${appt.services?.name}`,
                             start: appt.start_time,
                             end: appt.end_time,
                             extendedProps: {
