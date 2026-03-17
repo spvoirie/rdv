@@ -1,36 +1,24 @@
 <script>
-    // 1. Configuration Supabase
-    const SB_URL = 'https://ysxawicsmdpirvalczmv.supabase.co';
-    const SB_KEY = 'sb_publishable_GgDD8xm-IDHVVRvC-js2WA_WSZe0iCp';
-    
-    // On vérifie que la bibliothèque Supabase est bien chargée
-    if (typeof supabase === 'undefined') {
-        console.error("Erreur : La bibliothèque Supabase n'est pas chargée.");
-    }
-
-    const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-
-    // 2. Fonction de fermeture de la modal (placée en dehors pour être globale)
-    window.closeModal = function() {
-        const modal = document.getElementById('detailsModal');
-        const overlay = document.getElementById('overlay');
-        if (modal) modal.style.display = 'none';
-        if (overlay) overlay.style.display = 'none';
-    };
-
-    // 3. Initialisation du Calendrier
-    document.addEventListener('DOMContentLoaded', function() {
-        const calendarEl = document.getElementById('calendar');
+    // 1. On attend que TOUTE la page et les scripts externes soient chargés
+    window.onload = function() {
         
-        if (!calendarEl) {
-            console.error("Erreur : L'élément #calendar est introuvable dans le HTML.");
+        // Vérification de sécurité pour Supabase
+        if (typeof supabase === 'undefined') {
+            alert("Erreur : La bibliothèque Supabase ne charge pas. Vérifiez votre connexion ou le lien dans le <head>.");
             return;
         }
+
+        const SB_URL = 'https://ysxawicsmdpirvalczmv.supabase.co';
+        const SB_KEY = 'sb_publishable_GgDD8xm-IDHVVRvC-js2WA_WSZe0iCp';
+        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+
+        const calendarEl = document.getElementById('calendar');
+        if (!calendarEl) return;
 
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'timeGridWeek',
             locale: 'fr',
-            timeZone: 'UTC', // Affiche l'heure brute de la base de données
+            timeZone: 'UTC', // Affiche l'heure brute de la base
             firstDay: 1, 
             allDaySlot: false,
             slotMinTime: '09:00:00',
@@ -41,19 +29,12 @@
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
-            buttonText: {
-                today: "Aujourd'hui",
-                month: "Mois",
-                week: "Semaine",
-                day: "Jour"
-            },
             
             eventClick: function(info) {
                 const p = info.event.extendedProps;
-                // Formatage sécurisé pour la modal
                 const options = { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' };
-                const startStr = info.event.start ? info.event.start.toLocaleTimeString('fr-FR', options) : '--:--';
-                const endStr = info.event.end ? info.event.end.toLocaleTimeString('fr-FR', options) : '--:--';
+                const startStr = info.event.start.toLocaleTimeString('fr-FR', options);
+                const endStr = info.event.end.toLocaleTimeString('fr-FR', options);
                 
                 const content = `
                     <div class="detail-row"><div class="detail-label">Client</div><div class="detail-value">${p.name || 'Inconnu'}</div></div>
@@ -61,13 +42,9 @@
                     <div class="detail-row"><div class="detail-label">Prestation</div><div class="detail-value">${p.service || 'Soin'}</div></div>
                     <div class="detail-row" style="border:none"><div class="detail-label">Horaire</div><div class="detail-value">${startStr} — ${endStr}</div></div>
                 `;
-                
-                const modalContent = document.getElementById('modalContent');
-                if (modalContent) {
-                    modalContent.innerHTML = content;
-                    document.getElementById('detailsModal').style.display = 'block';
-                    document.getElementById('overlay').style.display = 'block';
-                }
+                document.getElementById('modalContent').innerHTML = content;
+                document.getElementById('detailsModal').style.display = 'block';
+                document.getElementById('overlay').style.display = 'block';
             },
 
             events: async function(info, successCallback, failureCallback) {
@@ -79,7 +56,7 @@
 
                     if (error) throw error;
 
-                    const events = (data || []).map(appt => ({
+                    successCallback((data || []).map(appt => ({
                         title: (appt.clients?.name || 'Client') + " - " + (appt.services?.name || 'Soin'),
                         start: appt.start_time,
                         end: appt.end_time,
@@ -88,16 +65,19 @@
                             phone: appt.clients?.phone_number || '-',
                             service: appt.services?.name || 'Soin'
                         }
-                    }));
-                    
-                    successCallback(events);
+                    })));
                 } catch (err) {
-                    console.error("Erreur lors du chargement des événements:", err);
                     failureCallback(err);
                 }
             }
         });
 
         calendar.render();
-    });
+    };
+
+    // Fonction globale pour fermer la modal
+    window.closeModal = function() {
+        document.getElementById('detailsModal').style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
+    };
 </script>
