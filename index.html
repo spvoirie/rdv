@@ -6,10 +6,15 @@
     document.addEventListener('DOMContentLoaded', function() {
         const calendarEl = document.getElementById('calendar');
         
+        // Sécurité : on vérifie que l'élément existe avant de lancer FullCalendar
+        if (!calendarEl) return;
+
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'timeGridWeek',
             locale: 'fr',
-            timeZone: 'UTC', // Affiche l'heure brute de la base sans calcul
+            // --- LA SOLUTION SIMPLE ---
+            timeZone: 'UTC', // On force l'affichage "brut" pour ignorer les décalages navigateur
+            // ---------------------------
             firstDay: 1, 
             allDaySlot: false,
             slotMinTime: '09:00:00',
@@ -31,16 +36,18 @@
             
             eventClick: function(info) {
                 const p = info.event.extendedProps;
-                // Formatage de l'heure pour la petite fiche (Modal)
-                const formatOptions = { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' };
-                const startStr = info.event.start.toLocaleTimeString('fr-FR', formatOptions);
-                const endStr = info.event.end.toLocaleTimeString('fr-FR', formatOptions);
+                // On force aussi l'affichage en UTC ici pour que la fiche soit raccord avec le planning
+                const formatTime = (date) => date.toLocaleTimeString('fr-FR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    timeZone: 'UTC' 
+                });
                 
                 const content = `
-                    <div class="detail-row"><div class="detail-label">Client</div><div class="detail-value">${p.name}</div></div>
-                    <div class="detail-row"><div class="detail-label">Numéro</div><div class="detail-value">${p.phone}</div></div>
-                    <div class="detail-row"><div class="detail-label">Prestation</div><div class="detail-value">${p.service}</div></div>
-                    <div class="detail-row" style="border:none"><div class="detail-label">Horaire</div><div class="detail-value">${startStr} — ${endStr}</div></div>
+                    <div class="detail-row"><div class="detail-label">Client</div><div class="detail-value">${p.name || 'Inconnu'}</div></div>
+                    <div class="detail-row"><div class="detail-label">Numéro</div><div class="detail-value">${p.phone || '-'}</div></div>
+                    <div class="detail-row"><div class="detail-label">Prestation</div><div class="detail-value">${p.service || 'Soin'}</div></div>
+                    <div class="detail-row" style="border:none"><div class="detail-label">Horaire</div><div class="detail-value">${formatTime(info.event.start)} — ${formatTime(info.event.end)}</div></div>
                 `;
                 document.getElementById('modalContent').innerHTML = content;
                 document.getElementById('detailsModal').style.display = 'block';
@@ -56,8 +63,9 @@
 
                     if (error) throw error;
 
-                    const formattedEvents = data.map(appt => ({
-                        title: (appt.clients?.name || 'Inconnu') + " - " + (appt.services?.name || 'Soin'),
+                    // On envoie les données telles quelles
+                    const events = (data || []).map(appt => ({
+                        title: `${appt.clients?.name || 'Client'} - ${appt.services?.name || 'Soin'}`,
                         start: appt.start_time,
                         end: appt.end_time,
                         extendedProps: {
@@ -67,19 +75,20 @@
                         }
                     }));
                     
-                    successCallback(formattedEvents);
+                    successCallback(events);
                 } catch (err) {
-                    console.error("Erreur Supabase:", err);
+                    console.error("Erreur:", err);
                     failureCallback(err);
                 }
             }
         });
-        
+
         calendar.render();
     });
 
-    function closeModal() {
+    // On s'assure que la fonction est accessible globalement pour le bouton fermer
+    window.closeModal = function() {
         document.getElementById('detailsModal').style.display = 'none';
         document.getElementById('overlay').style.display = 'none';
-    }
+    };
 </script>
