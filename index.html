@@ -1,20 +1,36 @@
 <script>
+    // 1. Configuration Supabase
     const SB_URL = 'https://ysxawicsmdpirvalczmv.supabase.co';
     const SB_KEY = 'sb_publishable_GgDD8xm-IDHVVRvC-js2WA_WSZe0iCp';
+    
+    // On vérifie que la bibliothèque Supabase est bien chargée
+    if (typeof supabase === 'undefined') {
+        console.error("Erreur : La bibliothèque Supabase n'est pas chargée.");
+    }
+
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
+    // 2. Fonction de fermeture de la modal (placée en dehors pour être globale)
+    window.closeModal = function() {
+        const modal = document.getElementById('detailsModal');
+        const overlay = document.getElementById('overlay');
+        if (modal) modal.style.display = 'none';
+        if (overlay) overlay.style.display = 'none';
+    };
+
+    // 3. Initialisation du Calendrier
     document.addEventListener('DOMContentLoaded', function() {
         const calendarEl = document.getElementById('calendar');
         
-        // Sécurité : on vérifie que l'élément existe avant de lancer FullCalendar
-        if (!calendarEl) return;
+        if (!calendarEl) {
+            console.error("Erreur : L'élément #calendar est introuvable dans le HTML.");
+            return;
+        }
 
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'timeGridWeek',
             locale: 'fr',
-            // --- LA SOLUTION SIMPLE ---
-            timeZone: 'UTC', // On force l'affichage "brut" pour ignorer les décalages navigateur
-            // ---------------------------
+            timeZone: 'UTC', // Affiche l'heure brute de la base de données
             firstDay: 1, 
             allDaySlot: false,
             slotMinTime: '09:00:00',
@@ -29,29 +45,29 @@
                 today: "Aujourd'hui",
                 month: "Mois",
                 week: "Semaine",
-                day: "Jour",
-                prev: "Précédent",
-                next: "Suivant"
+                day: "Jour"
             },
             
             eventClick: function(info) {
                 const p = info.event.extendedProps;
-                // On force aussi l'affichage en UTC ici pour que la fiche soit raccord avec le planning
-                const formatTime = (date) => date.toLocaleTimeString('fr-FR', { 
-                    hour: '2-digit', 
-                    minute: '2-digit', 
-                    timeZone: 'UTC' 
-                });
+                // Formatage sécurisé pour la modal
+                const options = { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' };
+                const startStr = info.event.start ? info.event.start.toLocaleTimeString('fr-FR', options) : '--:--';
+                const endStr = info.event.end ? info.event.end.toLocaleTimeString('fr-FR', options) : '--:--';
                 
                 const content = `
                     <div class="detail-row"><div class="detail-label">Client</div><div class="detail-value">${p.name || 'Inconnu'}</div></div>
                     <div class="detail-row"><div class="detail-label">Numéro</div><div class="detail-value">${p.phone || '-'}</div></div>
                     <div class="detail-row"><div class="detail-label">Prestation</div><div class="detail-value">${p.service || 'Soin'}</div></div>
-                    <div class="detail-row" style="border:none"><div class="detail-label">Horaire</div><div class="detail-value">${formatTime(info.event.start)} — ${formatTime(info.event.end)}</div></div>
+                    <div class="detail-row" style="border:none"><div class="detail-label">Horaire</div><div class="detail-value">${startStr} — ${endStr}</div></div>
                 `;
-                document.getElementById('modalContent').innerHTML = content;
-                document.getElementById('detailsModal').style.display = 'block';
-                document.getElementById('overlay').style.display = 'block';
+                
+                const modalContent = document.getElementById('modalContent');
+                if (modalContent) {
+                    modalContent.innerHTML = content;
+                    document.getElementById('detailsModal').style.display = 'block';
+                    document.getElementById('overlay').style.display = 'block';
+                }
             },
 
             events: async function(info, successCallback, failureCallback) {
@@ -63,9 +79,8 @@
 
                     if (error) throw error;
 
-                    // On envoie les données telles quelles
                     const events = (data || []).map(appt => ({
-                        title: `${appt.clients?.name || 'Client'} - ${appt.services?.name || 'Soin'}`,
+                        title: (appt.clients?.name || 'Client') + " - " + (appt.services?.name || 'Soin'),
                         start: appt.start_time,
                         end: appt.end_time,
                         extendedProps: {
@@ -77,7 +92,7 @@
                     
                     successCallback(events);
                 } catch (err) {
-                    console.error("Erreur:", err);
+                    console.error("Erreur lors du chargement des événements:", err);
                     failureCallback(err);
                 }
             }
@@ -85,10 +100,4 @@
 
         calendar.render();
     });
-
-    // On s'assure que la fonction est accessible globalement pour le bouton fermer
-    window.closeModal = function() {
-        document.getElementById('detailsModal').style.display = 'none';
-        document.getElementById('overlay').style.display = 'none';
-    };
 </script>
