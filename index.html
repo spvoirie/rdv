@@ -5,12 +5,11 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         const calendarEl = document.getElementById('calendar');
+        
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'timeGridWeek',
             locale: 'fr',
-            // --- LOGIQUE SIMPLIFIÉE ---
-            timeZone: 'UTC', // On dit au calendrier d'afficher l'heure brute sans calcul
-            // ---------------------------
+            timeZone: 'UTC', // Affiche l'heure brute de la base sans calcul
             firstDay: 1, 
             allDaySlot: false,
             slotMinTime: '09:00:00',
@@ -32,14 +31,16 @@
             
             eventClick: function(info) {
                 const p = info.event.extendedProps;
-                // On utilise 'UTC' ici aussi pour que la fiche affiche la même chose que le calendrier
-                const formatTime = (date) => date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+                // Formatage de l'heure pour la petite fiche (Modal)
+                const formatOptions = { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' };
+                const startStr = info.event.start.toLocaleTimeString('fr-FR', formatOptions);
+                const endStr = info.event.end.toLocaleTimeString('fr-FR', formatOptions);
                 
                 const content = `
                     <div class="detail-row"><div class="detail-label">Client</div><div class="detail-value">${p.name}</div></div>
                     <div class="detail-row"><div class="detail-label">Numéro</div><div class="detail-value">${p.phone}</div></div>
                     <div class="detail-row"><div class="detail-label">Prestation</div><div class="detail-value">${p.service}</div></div>
-                    <div class="detail-row" style="border:none"><div class="detail-label">Horaire</div><div class="detail-value">${formatTime(info.event.start)} — ${formatTime(info.event.end)}</div></div>
+                    <div class="detail-row" style="border:none"><div class="detail-label">Horaire</div><div class="detail-value">${startStr} — ${endStr}</div></div>
                 `;
                 document.getElementById('modalContent').innerHTML = content;
                 document.getElementById('detailsModal').style.display = 'block';
@@ -55,9 +56,8 @@
 
                     if (error) throw error;
 
-                    successCallback(data.map(appt => ({
-                        title: `${appt.clients?.name} - ${appt.services?.name}`,
-                        // On envoie la donnée brute, FullCalendar en UTC fera le reste
+                    const formattedEvents = data.map(appt => ({
+                        title: (appt.clients?.name || 'Inconnu') + " - " + (appt.services?.name || 'Soin'),
                         start: appt.start_time,
                         end: appt.end_time,
                         extendedProps: {
@@ -65,12 +65,16 @@
                             phone: appt.clients?.phone_number || '-',
                             service: appt.services?.name || 'Soin'
                         }
-                    })));
+                    }));
+                    
+                    successCallback(formattedEvents);
                 } catch (err) {
+                    console.error("Erreur Supabase:", err);
                     failureCallback(err);
                 }
             }
         });
+        
         calendar.render();
     });
 
