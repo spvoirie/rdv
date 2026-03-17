@@ -8,9 +8,9 @@
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'timeGridWeek',
             locale: 'fr',
-            // --- CORRECTION FUSEAU ---
-            timeZone: 'local', // On utilise le fuseau local du navigateur
-            // -------------------------
+            // --- LOGIQUE SIMPLIFIÉE ---
+            timeZone: 'UTC', // On dit au calendrier d'afficher l'heure brute sans calcul
+            // ---------------------------
             firstDay: 1, 
             allDaySlot: false,
             slotMinTime: '09:00:00',
@@ -32,7 +32,8 @@
             
             eventClick: function(info) {
                 const p = info.event.extendedProps;
-                const formatTime = (date) => date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                // On utilise 'UTC' ici aussi pour que la fiche affiche la même chose que le calendrier
+                const formatTime = (date) => date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
                 
                 const content = `
                     <div class="detail-row"><div class="detail-label">Client</div><div class="detail-value">${p.name}</div></div>
@@ -56,9 +57,9 @@
 
                     successCallback(data.map(appt => ({
                         title: `${appt.clients?.name} - ${appt.services?.name}`,
-                        // On retire le 'Z' ou les offsets si présents pour forcer l'affichage local
-                        start: appt.start_time.replace('Z', '').replace('+00', ''),
-                        end: appt.end_time.replace('Z', '').replace('+00', ''),
+                        // On envoie la donnée brute, FullCalendar en UTC fera le reste
+                        start: appt.start_time,
+                        end: appt.end_time,
                         extendedProps: {
                             name: appt.clients?.name || 'Inconnu',
                             phone: appt.clients?.phone_number || '-',
