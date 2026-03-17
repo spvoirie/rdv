@@ -27,6 +27,7 @@
         header { margin-bottom: 20px; padding: 0 10px; }
         h2 { font-size: 1.6rem; font-weight: 800; color: var(--brand-dark); }
 
+        /* --- CALENDRIER --- */
         #calendar {
             background: white;
             border-radius: 20px;
@@ -34,11 +35,13 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
 
+        /* --- STYLE DES HEURES (COLONNE DE GAUCHE) --- */
         .fc-timegrid-slot-label-cushion, .fc-timegrid-axis-cushion {
             color: var(--brand-dark) !important;
             font-weight: 700 !important;
         }
 
+        /* --- STYLE DES RDV --- */
         .fc-v-event {
             background-color: #ffffff !important;
             border: 1px solid #e2e8f0 !important;
@@ -56,6 +59,7 @@
             white-space: normal !important;
         }
 
+        /* --- BOUTONS --- */
         .fc-button {
             background: white !important;
             color: var(--brand-dark) !important;
@@ -71,6 +75,7 @@
             border-color: var(--brand-dark) !important;
         }
 
+        /* --- EN-TÊTES --- */
         .fc-col-header-cell-cushion {
             color: var(--brand-dark) !important;
             font-weight: 800 !important;
@@ -79,6 +84,7 @@
             text-decoration: none !important;
         }
 
+        /* --- MODAL --- */
         #detailsModal {
             display: none; position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
@@ -122,19 +128,16 @@
     </div>
 
     <script>
-        // Utilisation de window.onload pour garantir que Supabase est bien chargé
         window.onload = function() {
             const SB_URL = 'https://ysxawicsmdpirvalczmv.supabase.co';
             const SB_KEY = 'sb_publishable_GgDD8xm-IDHVVRvC-js2WA_WSZe0iCp';
-            
-            // Création sécurisée du client
             const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
             const calendarEl = document.getElementById('calendar');
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'timeGridWeek',
                 locale: 'fr',
-                timeZone: 'UTC', // On affiche l'heure telle qu'elle est en base (Paris)
+                timeZone: 'local', // On reste en local pour l'affichage navigateur
                 firstDay: 1, 
                 allDaySlot: false,
                 slotMinTime: '09:00:00',
@@ -156,11 +159,9 @@
                 
                 eventClick: function(info) {
                     const p = info.event.extendedProps;
-                    // Formatage en UTC pour correspondre au calendrier
                     const formatTime = (date) => date.toLocaleTimeString('fr-FR', { 
                         hour: '2-digit', 
-                        minute: '2-digit', 
-                        timeZone: 'UTC' 
+                        minute: '2-digit' 
                     });
                     
                     const content = `
@@ -183,16 +184,24 @@
 
                         if (error) throw error;
 
-                        successCallback((data || []).map(appt => ({
-                            title: (appt.clients?.name || 'Client') + " - " + (appt.services?.name || 'Soin'),
-                            start: appt.start_time,
-                            end: appt.end_time,
-                            extendedProps: {
-                                name: appt.clients?.name || 'Inconnu',
-                                phone: appt.clients?.phone_number || '-',
-                                service: appt.services?.name || 'Soin'
-                            }
-                        })));
+                        const events = (data || []).map(appt => {
+                            // Supprime le fuseau horaire (+01:00 ou Z) pour forcer l'heure brute
+                            const cleanStart = appt.start_time.substring(0, 19);
+                            const cleanEnd = appt.end_time.substring(0, 19);
+
+                            return {
+                                title: (appt.clients?.name || 'Client') + " - " + (appt.services?.name || 'Soin'),
+                                start: cleanStart,
+                                end: cleanEnd,
+                                extendedProps: {
+                                    name: appt.clients?.name || 'Inconnu',
+                                    phone: appt.clients?.phone_number || '-',
+                                    service: appt.services?.name || 'Soin'
+                                }
+                            };
+                        });
+                        
+                        successCallback(events);
                     } catch (err) {
                         failureCallback(err);
                     }
