@@ -25,131 +25,80 @@
 
         /* HEADER & TOP BAR */
         .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        
+        /* STYLE BOUTON RAPPEL AGRANDI */
         .rappel-pill { 
-            background: #fff1f2; color: var(--danger); padding: 8px 16px; border-radius: 100px; 
-            font-weight: 800; font-size: 0.75rem; border: 1px solid #fecdd3; 
-            cursor: pointer; transition: all 0.2s ease; 
+            padding: 12px 24px; border-radius: 100px; 
+            font-weight: 800; font-size: 0.9rem; border: 2px solid transparent; 
+            cursor: pointer; transition: all 0.3s ease; 
+            display: flex; align-items: center; gap: 8px;
         }
-        /* Surbrillance pilule rappel */
-        .rappel-pill:hover { background: var(--danger); color: white; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
-        .rappel-pill:active { transform: translateY(0); scale: 0.98; }
+        
+        /* État Vert (Zéro) */
+        .rappel-zero { background: #ecfdf5; color: var(--success); border-color: #a7f3d0; }
+        
+        /* État Rouge Clignotant */
+        .rappel-active { 
+            background: var(--danger); color: white; 
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+            animation: pulse-red 1.5s infinite;
+        }
 
-        /* MODERN CALENDAR OVERRIDE */
+        @keyframes pulse-red {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .rappel-pill:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+        /* CALENDAR */
         #calendar { background: white; border-radius: 24px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid var(--border); }
-        .fc { --fc-border-color: #f1f5f9; --fc-button-bg-color: #ffffff; --fc-button-text-color: #0f172a; --fc-button-border-color: #e2e8f0; --fc-button-hover-bg-color: #f8fafc; }
-        
-        /* Style boutons calendrier par défaut */
-        .fc .fc-button { 
-            font-weight: 700 !important; text-transform: capitalize !important; 
-            border-radius: 10px !important; transition: all 0.2s ease; 
-            cursor: pointer !important; 
-        }
-        /* Surbrillance boutons calendrier */
-        .fc .fc-button:hover { background-color: #f1f5f9 !important; border-color: #cbd5e1 !important; transform: translateY(-1px); }
-        .fc .fc-button:active { transform: translateY(0); scale: 0.98; }
-        
-        /* Bouton actif calendrier */
-        .fc .fc-button-primary:not(:disabled).fc-button-active { background-color: var(--brand-dark) !important; color: white !important; border-color: var(--brand-dark) !important; transform: none !important; box-shadow: none !important; }
-        
-        /* RDV STYLE - TEXTE NOIR VISIBLE */
-        .fc-event { border: 1px solid var(--border) !important; border-radius: 8px !important; padding: 2px 4px !important; box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important; cursor: pointer !important; transition: all 0.2s ease !important; }
-        /* Surbrillance RDV */
-        .fc-event:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important; z-index: 5; }
-        
-        .fc-event-main { color: var(--brand-dark) !important; font-weight: 700 !important; font-size: 0.8rem !important; padding: 4px !important; }
+        .fc { --fc-border-color: #f1f5f9; --fc-button-bg-color: #ffffff; --fc-button-text-color: #0f172a; --fc-button-border-color: #e2e8f0; }
+        .fc .fc-button { font-weight: 700 !important; border-radius: 10px !important; cursor: pointer !important; }
+        .fc-event { cursor: pointer !important; transition: all 0.2s ease !important; }
+        .fc-event:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important; }
         .event-ok { border-left: 5px solid var(--success) !important; background: white !important; }
-        .event-rappel { border-left: 5px solid var(--danger) !important; background: #fff1f2 !important; }
 
-        /* MODAL PLUS LARGE */
-        #detailsModal { 
+        /* MODALS */
+        #detailsModal, #listRappelsModal { 
             display: none; position: fixed; top: 50%; left: 50%; 
             transform: translate(-50%, -50%); 
             background: white; border-radius: 28px; z-index: 2000; 
-            width: 90%; max-width: 550px; /* LARGEUR AUGMENTÉE */
+            width: 90%; max-width: 550px; 
             box-shadow: 0 40px 80px rgba(0,0,0,0.2); overflow: hidden; 
         }
         .modal-header { padding: 20px 25px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
-        .modal-title { font-weight: 800; font-size: 1rem; color: var(--brand-dark); }
-        
-        /* Badge déverrouiller */
-        .unlock-badge { 
-            font-size: 0.65rem; font-weight: 800; padding: 6px 12px; border-radius: 8px; 
-            background: #f1f5f9; color: #64748b; cursor: pointer; transition: all 0.2s ease; 
-        }
-        /* Surbrillance badge déverrouiller */
-        .unlock-badge:hover { background: #e2e8f0; color: var(--brand-dark); transform: scale(1.05); }
-        .unlock-badge.active { background: var(--brand-dark); color: white; }
-        .unlock-badge.active:hover { background: #1e293b; }
+        .modal-title { font-weight: 800; font-size: 1.1rem; color: var(--brand-dark); }
+        .modal-body { padding: 25px; max-height: 70vh; overflow-y: auto; }
 
-        .modal-body { padding: 25px; }
-        .input-group { margin-bottom: 18px; }
-        .label { font-size: 0.65rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; display: block; }
-        
-        /* Inputs */
-        .field { 
-            width: 100%; border: 1.5px solid #f1f5f9; padding: 12px; border-radius: 12px; 
-            font-weight: 700; background: #f8fafc; font-family: inherit; box-sizing: border-box; 
-            font-size: 15px; transition: all 0.2s ease; outline: none; 
+        /* LISTE RAPPELS */
+        .rappel-item { 
+            background: #f8fafc; padding: 15px; border-radius: 16px; margin-bottom: 12px;
+            border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
         }
-        .field[readonly] { color: #64748b; cursor: not-allowed; }
-        
-        /* Inputs déverrouillés cliquables */
-        .field.unlocked { background: white; border-color: #cbd5e1; cursor: text; }
-        .field.unlocked:hover { border-color: #94a3b8; }
-        .field.unlocked:focus { border-color: var(--brand-dark); box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1); }
-        
-        /* Cas spécifique datetime-local unlocked */
-        input[type="datetime-local"].field.unlocked { cursor: pointer; }
+        .rappel-info b { display: block; color: var(--brand-dark); font-size: 1rem; }
+        .rappel-info span { font-size: 0.8rem; color: #64748b; }
+        .rappel-actions { display: flex; gap: 8px; }
 
-        /* Icône appel */
-        #callLink { 
-            background: var(--brand-dark); padding: 12px; border-radius: 12px; 
-            color: white; text-decoration: none; cursor: pointer; 
-            transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;
+        /* INPUTS & BOUTONS (Identiques à ton style) */
+        .unlock-badge { font-size: 0.65rem; font-weight: 800; padding: 6px 12px; border-radius: 8px; background: #f1f5f9; cursor: pointer; }
+        .field { width: 100%; border: 1.5px solid #f1f5f9; padding: 12px; border-radius: 12px; font-weight: 700; background: #f8fafc; margin-top: 5px; }
+        .field.unlocked { background: white; border-color: #cbd5e1; }
+        .label { font-size: 0.65rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; }
+        
+        #callLink, .btn-call-mini { 
+            background: var(--brand-dark); color: white; padding: 10px; border-radius: 10px; 
+            text-decoration: none; cursor: pointer; transition: 0.2s;
         }
-        /* Surbrillance icône appel */
-        #callLink:hover { background: #1e293b; transform: scale(1.1); box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2); }
-        #callLink:active { transform: scale(1); }
+        #callLink:hover, .btn-call-mini:hover { transform: scale(1.1); background: #1e293b; }
 
-        /* ACTIONS EN BAS DE FICHE */
-        .danger-zone { display: flex; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px dotted #e2e8f0; }
-        
-        /* Mini boutons (blacklist, annuler) */
-        .mini-btn { 
-            flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #f1f5f9; 
-            font-size: 0.7rem; font-weight: 800; cursor: pointer; 
-            transition: all 0.2s ease; background: white; color: #64748b; 
-        }
-        /* Surbrillance mini boutons */
-        .mini-btn:hover { background: #f1f5f9; color: var(--brand-dark); border-color: #cbd5e1; transform: translateY(-1px); }
-        .mini-btn:active { transform: translateY(0); scale: 0.98; }
-        
-        /* Style banni */
-        .mini-btn.banned { color: var(--danger); border-color: #fee2e2; background: #fff1f2; }
-        .mini-btn.banned:hover { background: #fee2e2; border-color: #fecdd3; }
-
-        /* FOOTER & BOUTONS PRINCIPAUX */
-        .modal-footer { padding: 0 25px 25px; display: flex; gap: 10px; }
-        .btn-main { 
-            flex: 1; border: none; padding: 15px; border-radius: 14px; 
-            font-weight: 800; cursor: pointer; transition: all 0.2s ease; 
-            font-size: 0.9rem; outline: none; 
-        }
-        
-        /* Bouton Fermer */
-        .btn-close { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
-        .btn-close:hover { background: #e2e8f0; color: var(--brand-dark); border-color: #cbd5e1; transform: translateY(-1px); }
-        .btn-close:active { transform: translateY(0); scale: 0.98; }
-        
-        /* Bouton Enregistrer */
-        .btn-save { background: var(--brand-dark); color: white; opacity: 0.15; pointer-events: none; }
+        .btn-main { border: none; padding: 15px; border-radius: 14px; font-weight: 800; cursor: pointer; flex: 1; transition: 0.2s; }
+        .btn-close { background: #f1f5f9; color: #64748b; }
+        .btn-save { background: var(--brand-dark); color: white; opacity: 0.2; pointer-events: none; }
         .btn-save.ready { opacity: 1; pointer-events: auto; }
-        /* Surbrillance Enregistrer ready */
-        .btn-save.ready:hover { background: #1e293b; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(15,23,42,0.2); }
-        .btn-save.ready:active { transform: translateY(0); scale: 0.97; }
 
-        /* OVERLAY */
-        #overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.3); backdrop-filter: blur(4px); z-index: 1000; cursor: pointer; }
+        #overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.3); backdrop-filter: blur(4px); z-index: 1000; }
     </style>
 </head>
 <body>
@@ -160,49 +109,42 @@
             <h2 style="margin:0; font-weight: 800;">L'Atelier Capillaire</h2>
             <p style="margin:0; font-size: 0.8rem; font-weight: 600; color: #94a3b8;">Gestion des réservations</p>
         </div>
-        <div id="rappelCount" class="rappel-pill">0 Rappels en attente</div>
+        <div id="rappelCount" class="rappel-pill rappel-zero" onclick="openListRappels()">0 Rappels en attente</div>
     </div>
     <div id='calendar'></div>
 </div>
 
-<div id="overlay" onclick="closeModal()"></div>
+<div id="overlay" onclick="closeAllModals()"></div>
+
+<div id="listRappelsModal">
+    <div class="modal-header">
+        <span class="modal-title">🚨 Rappels à traiter</span>
+        <button class="unlock-badge" onclick="closeAllModals()">FERMER</button>
+    </div>
+    <div class="modal-body" id="rappelListContent">
+        </div>
+</div>
+
 <div id="detailsModal">
     <div class="modal-header">
         <span class="modal-title">Détails du rendez-vous</span>
         <div id="unlockToggle" class="unlock-badge">🔒 DÉVERROUILLER</div>
     </div>
     <div class="modal-body">
-        <div class="input-group">
-            <span class="label">Propriétaire du compte</span>
-            <input type="text" id="editClient" class="field" readonly>
-        </div>
-        <div class="input-group">
-            <span class="label">Bénéficiaire / Motif</span>
-            <input type="text" id="editBene" class="field" readonly>
-        </div>
+        <div class="input-group"><span class="label">Client</span><input type="text" id="editClient" class="field" readonly></div>
+        <div class="input-group"><span class="label">Motif</span><input type="text" id="editBene" class="field" readonly></div>
         <div class="input-group">
             <span class="label">Contact</span>
-            <div style="display:flex; gap:8px;">
-                <input type="text" id="editPhone" class="field" readonly>
-                <a id="callLink" href="#">📞</a>
-            </div>
+            <div style="display:flex; gap:8px;"><input type="text" id="editPhone" class="field" readonly><a id="callLink" href="#">📞</a></div>
         </div>
         <div style="display:flex; gap:12px;">
-            <div class="input-group" style="flex:1;"><span class="label">Début</span><input type="datetime-local" id="editStart" class="field" readonly></div>
-            <div class="input-group" style="flex:1;"><span class="label">Fin</span><input type="datetime-local" id="editEnd" class="field" readonly></div>
+            <div style="flex:1;"><span class="label">Début</span><input type="datetime-local" id="editStart" class="field" readonly></div>
+            <div style="flex:1;"><span class="label">Fin</span><input type="datetime-local" id="editEnd" class="field" readonly></div>
         </div>
-        <div class="input-group">
-            <span class="label">Notes</span>
-            <textarea id="editNotes" class="field" readonly style="min-height:60px; resize:none;"></textarea>
-        </div>
-
-        <div class="danger-zone">
-            <button id="blacklistBtn" class="mini-btn">🛡️ BLACKLISTER</button>
-            <button id="cancelBtn" class="mini-btn" style="color:var(--danger)">🗑️ ANNULER RDV</button>
-        </div>
+        <div class="input-group" style="margin-top:15px;"><span class="label">Notes</span><textarea id="editNotes" class="field" readonly style="min-height:60px;"></textarea></div>
     </div>
-    <div class="modal-footer">
-        <button class="btn-main btn-close" onclick="closeModal()">Fermer</button>
+    <div style="padding: 0 25px 25px; display: flex; gap: 10px;">
+        <button class="btn-main btn-close" onclick="closeAllModals()">Fermer</button>
         <button class="btn-main btn-save" id="saveBtn">Enregistrer</button>
     </div>
 </div>
@@ -212,31 +154,74 @@
     const SB_KEY = 'sb_publishable_GgDD8xm-IDHVVRvC-js2WA_WSZe0iCp';
     const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
     let currentEvent = null;
+    let allRappels = [];
 
     async function init() {
         const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
             initialView: 'timeGridWeek',
             locale: 'fr',
             headerToolbar: { left: 'today prev,next', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
-            slotMinTime: '08:00:00',
-            slotMaxTime: '20:00:00',
-            allDaySlot: false,
-            height: 'auto',
+            slotMinTime: '08:00:00', slotMaxTime: '20:00:00', allDaySlot: false, height: 'auto',
             eventClick: (info) => openModal(info.event),
             events: async (info, success) => {
-                const { data } = await supabaseClient.from('appointments').select('*, clients(*), services(name)').neq('status', 'cancelled');
-                const rappels = data.filter(a => a.beneficiary_name?.toUpperCase().includes('RAPPEL'));
-                document.getElementById('rappelCount').innerText = `${rappels.length} Rappels en attente`;
-                success(data.map(a => ({
+                const { data } = await supabaseClient.from('appointments').select('*, clients(*)').neq('status', 'cancelled');
+                
+                // Filtrage : On sépare les rappels des RDV
+                allRappels = data.filter(a => a.beneficiary_name?.toUpperCase().includes('RAPPEL') || a.start_time === a.end_time);
+                const rdvs = data.filter(a => !allRappels.includes(a));
+
+                updateRappelUI(allRappels.length);
+                
+                success(rdvs.map(a => ({
                     id: a.id, title: (a.beneficiary_name || a.clients?.name), start: a.start_time, end: a.end_time,
-                    className: a.beneficiary_name?.toUpperCase().includes('RAPPEL') ? 'event-rappel' : 'event-ok',
-                    extendedProps: a
+                    className: 'event-ok', extendedProps: a
                 })));
             }
         });
         calendar.render(); window.cal = calendar;
     }
 
+    function updateRappelUI(count) {
+        const btn = document.getElementById('rappelCount');
+        btn.innerText = `${count} Rappel${count > 1 ? 's' : ''} en attente`;
+        if(count > 0) {
+            btn.className = 'rappel-pill rappel-active';
+        } else {
+            btn.className = 'rappel-pill rappel-zero';
+        }
+    }
+
+    function openListRappels() {
+        const content = document.getElementById('rappelListContent');
+        content.innerHTML = allRappels.length ? '' : '<p style="text-align:center; color:#94a3b8;">Aucun rappel en attente. Beau travail !</p>';
+        
+        allRappels.forEach(r => {
+            const div = document.createElement('div');
+            div.className = 'rappel-item';
+            div.innerHTML = `
+                <div class="rappel-info">
+                    <b>${r.beneficiary_name.replace('RAPPEL : ', '')}</b>
+                    <span>${r.notes || 'Pas de motif précisé'}</span>
+                    <small style="color:var(--accent)">Le ${new Date(r.start_time).toLocaleString('fr-FR')}</small>
+                </div>
+                <div class="rappel-actions">
+                    <a href="tel:${r.clients?.phone_number}" class="btn-call-mini">📞 Appeler</a>
+                    <button onclick="archiveRappel('${r.id}')" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">✅</button>
+                </div>
+            `;
+            content.appendChild(div);
+        });
+        document.getElementById('listRappelsModal').style.display = 'block';
+        document.getElementById('overlay').style.display = 'block';
+    }
+
+    async function archiveRappel(id) {
+        await supabaseClient.from('appointments').update({ status: 'cancelled' }).eq('id', id);
+        window.cal.refetchEvents();
+        setTimeout(openListRappels, 300); // Rafraîchit la liste
+    }
+
+    // --- LOGIQUE FICHE CLIENT (RDV) ---
     function openModal(event) {
         currentEvent = event; const p = event.extendedProps;
         document.getElementById('editClient').value = p.clients?.name || '';
@@ -246,11 +231,6 @@
         document.getElementById('editEnd').value = p.end_time.substring(0,16);
         document.getElementById('editNotes').value = p.notes || '';
         document.getElementById('callLink').href = `tel:${p.clients?.phone_number}`;
-        
-        const bBtn = document.getElementById('blacklistBtn');
-        bBtn.innerText = p.clients?.is_blacklisted ? '🛡️ BLACKLISTÉ' : '🛡️ BLACKLISTER';
-        bBtn.classList.toggle('banned', p.clients?.is_blacklisted);
-
         document.getElementById('detailsModal').style.display = 'block';
         document.getElementById('overlay').style.display = 'block';
         resetLock();
@@ -265,36 +245,26 @@
     };
 
     document.getElementById('saveBtn').onclick = async function() {
-        const p = currentEvent.extendedProps;
         await supabaseClient.from('appointments').update({ 
             beneficiary_name: document.getElementById('editBene').value, 
             notes: document.getElementById('editNotes').value,
-            start_time: document.getElementById('editStart').value,
-            end_time: document.getElementById('editEnd').value 
+            start_time: document.getElementById('editStart').value, end_time: document.getElementById('editEnd').value 
         }).eq('id', currentEvent.id);
-        await supabaseClient.from('clients').update({ name: document.getElementById('editClient').value, phone_number: document.getElementById('editPhone').value }).eq('id', p.clients.id);
-        window.cal.refetchEvents(); closeModal();
-    };
-
-    document.getElementById('blacklistBtn').onclick = async function() {
-        const cl = currentEvent.extendedProps.clients;
-        await supabaseClient.from('clients').update({ is_blacklisted: !cl.is_blacklisted }).eq('id', cl.id);
-        window.cal.refetchEvents(); closeModal();
-    };
-
-    document.getElementById('cancelBtn').onclick = async function() {
-        if(confirm("Annuler ce RDV ?")) {
-            await supabaseClient.from('appointments').update({ status: 'cancelled' }).eq('id', currentEvent.id);
-            window.cal.refetchEvents(); closeModal();
-        }
+        window.cal.refetchEvents(); closeAllModals();
     };
 
     function resetLock() { 
-        document.getElementById('unlockToggle').innerText = "🔒 DÉVERROUILLER"; 
-        document.getElementById('unlockToggle').classList.remove('active');
+        document.querySelectorAll('.field').forEach(f => { f.readOnly = true; f.classList.remove('unlocked'); });
+        document.getElementById('unlockToggle').innerText = "🔒 DÉVERROUILLER";
         document.getElementById('saveBtn').classList.remove('ready');
     }
-    function closeModal() { document.getElementById('detailsModal').style.display = 'none'; document.getElementById('overlay').style.display = 'none'; }
+
+    function closeAllModals() { 
+        document.getElementById('detailsModal').style.display = 'none'; 
+        document.getElementById('listRappelsModal').style.display = 'none'; 
+        document.getElementById('overlay').style.display = 'none'; 
+    }
+
     window.onload = init;
 </script>
 </body>
