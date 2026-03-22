@@ -13,6 +13,7 @@
         :root {
             --brand-dark: #0f172a;
             --brand-bg: #f8fafc;
+            --accent-blue: #3b82f6;
         }
 
         html, body { 
@@ -27,7 +28,6 @@
         header { margin-bottom: 20px; padding: 0 10px; }
         h2 { font-size: 1.6rem; font-weight: 800; color: var(--brand-dark); }
 
-        /* --- CALENDRIER --- */
         #calendar {
             background: white;
             border-radius: 20px;
@@ -35,56 +35,22 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
 
-        /* --- STYLE DES HEURES (COLONNE DE GAUCHE) --- */
-        .fc-timegrid-slot-label-cushion, .fc-timegrid-axis-cushion {
-            color: var(--brand-dark) !important;
-            font-weight: 700 !important;
-        }
-
-        /* --- STYLE DES RDV --- */
+        /* STYLE DES RDV */
         .fc-v-event {
             background-color: #ffffff !important;
             border: 1px solid #e2e8f0 !important;
             border-left: 5px solid var(--brand-dark) !important;
             border-radius: 8px !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
         }
 
         .fc-event-main { padding: 4px !important; }
-        
         .fc-event-title {
             color: var(--brand-dark) !important; 
             font-weight: 700 !important;
             font-size: 0.85rem !important;
-            white-space: normal !important;
         }
 
-        /* --- BOUTONS --- */
-        .fc-button {
-            background: white !important;
-            color: var(--brand-dark) !important;
-            border: 1px solid #e2e8f0 !important;
-            border-radius: 10px !important;
-            font-weight: 700 !important;
-            transition: all 0.2s !important;
-        }
-
-        .fc-button-active {
-            background: var(--brand-dark) !important;
-            color: white !important;
-            border-color: var(--brand-dark) !important;
-        }
-
-        /* --- EN-TÊTES --- */
-        .fc-col-header-cell-cushion {
-            color: var(--brand-dark) !important;
-            font-weight: 800 !important;
-            text-transform: capitalize;
-            padding: 10px 0 !important;
-            text-decoration: none !important;
-        }
-
-        /* --- MODAL --- */
+        /* MODAL */
         #detailsModal {
             display: none; position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
@@ -108,6 +74,16 @@
         .close-btn { 
             width: 100%; border: none; padding: 18px; background: #f8fafc;
             font-weight: 800; color: var(--brand-dark); cursor: pointer;
+        }
+
+        /* Badge pour différencier client vs bénéficiaire */
+        .beneficiary-tag {
+            font-size: 0.7rem;
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 5px;
+            color: var(--brand-dark);
         }
     </style>
 </head>
@@ -137,7 +113,7 @@
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'timeGridWeek',
                 locale: 'fr',
-                timeZone: 'local', // On reste en local pour l'affichage navigateur
+                timeZone: 'local',
                 firstDay: 1, 
                 allDaySlot: false,
                 slotMinTime: '09:00:00',
@@ -148,14 +124,6 @@
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
-                buttonText: {
-                    today: "Aujourd'hui",
-                    month: "Mois",
-                    week: "Semaine",
-                    day: "Jour",
-                    prev: "Précédent",
-                    next: "Suivant"
-                },
                 
                 eventClick: function(info) {
                     const p = info.event.extendedProps;
@@ -165,9 +133,11 @@
                     });
                     
                     const content = `
-                        <div class="detail-row"><div class="detail-label">Client</div><div class="detail-value">${p.name || 'Inconnu'}</div></div>
+                        <div class="detail-row"><div class="detail-label">Client (Appelant)</div><div class="detail-value">${p.clientName || 'Inconnu'}</div></div>
+                        <div class="detail-row"><div class="detail-label">Bénéficiaire du soin</div><div class="detail-value">${p.beneficiary || 'Identique au client'}</div></div>
                         <div class="detail-row"><div class="detail-label">Numéro</div><div class="detail-value">${p.phone || '-'}</div></div>
                         <div class="detail-row"><div class="detail-label">Prestation</div><div class="detail-value">${p.service || 'Soin'}</div></div>
+                        <div class="detail-row"><div class="detail-label">Notes IA</div><div class="detail-value" style="font-weight: 500; color: #475569;">${p.notes || 'Aucune note'}</div></div>
                         <div class="detail-row" style="border:none"><div class="detail-label">Horaire</div><div class="detail-value">${formatTime(info.event.start)} — ${formatTime(info.event.end)}</div></div>
                     `;
                     document.getElementById('modalContent').innerHTML = content;
@@ -179,24 +149,28 @@
                     try {
                         const { data, error } = await supabaseClient
                             .from('appointments')
-                            .select('start_time, end_time, clients(name, phone_number), services(name)')
+                            .select('start_time, end_time, beneficiary_name, notes, clients(name, phone_number), services(name)')
                             .neq('status', 'cancelled');
 
                         if (error) throw error;
 
                         const events = (data || []).map(appt => {
-                            // Supprime le fuseau horaire (+01:00 ou Z) pour forcer l'heure brute
                             const cleanStart = appt.start_time.substring(0, 19);
                             const cleanEnd = appt.end_time.substring(0, 19);
+                            
+                            // On affiche en priorité le nom du bénéficiaire sur le calendrier
+                            const displayName = appt.beneficiary_name || appt.clients?.name || 'Client';
 
                             return {
-                                title: (appt.clients?.name || 'Client') + " - " + (appt.services?.name || 'Soin'),
+                                title: displayName + " (" + (appt.services?.name || 'Soin') + ")",
                                 start: cleanStart,
                                 end: cleanEnd,
                                 extendedProps: {
-                                    name: appt.clients?.name || 'Inconnu',
+                                    clientName: appt.clients?.name || 'Inconnu',
+                                    beneficiary: appt.beneficiary_name || 'Identique',
                                     phone: appt.clients?.phone_number || '-',
-                                    service: appt.services?.name || 'Soin'
+                                    service: appt.services?.name || 'Soin',
+                                    notes: appt.notes || ''
                                 }
                             };
                         });
