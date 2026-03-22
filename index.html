@@ -258,12 +258,22 @@
     };
 
     document.getElementById('saveBtn').onclick = async function() {
+        const newClientName = document.getElementById('editClient').value;
+        const clientId = currentEvent.extendedProps.client_id;
+
+        if (clientId) {
+            await supabaseClient.from('clients').update({ name: newClientName }).eq('id', clientId);
+        }
+
         await supabaseClient.from('appointments').update({ 
             beneficiary_name: document.getElementById('editBene').value, 
             notes: document.getElementById('editNotes').value,
-            start_time: document.getElementById('editStart').value, end_time: document.getElementById('editEnd').value 
+            start_time: document.getElementById('editStart').value, 
+            end_time: document.getElementById('editEnd').value 
         }).eq('id', currentEvent.id);
-        window.cal.refetchEvents(); closeAllModals();
+        
+        window.cal.refetchEvents(); 
+        closeAllModals();
     };
 
     document.getElementById('cancelBtn').onclick = async function() {
