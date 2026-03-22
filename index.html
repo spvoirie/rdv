@@ -13,7 +13,6 @@
         :root {
             --brand-dark: #0f172a;
             --brand-bg: #f8fafc;
-            --accent-blue: #3b82f6;
         }
 
         html, body { 
@@ -35,12 +34,29 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
 
-        /* STYLE DES RDV */
+        /* --- STYLE DES RDV & EFFETS SURVOL --- */
         .fc-v-event {
             background-color: #ffffff !important;
             border: 1px solid #e2e8f0 !important;
             border-left: 5px solid var(--brand-dark) !important;
             border-radius: 8px !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+            cursor: pointer !important; /* Curseur main / doigt */
+            transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease !important;
+        }
+
+        /* Effet de surbrillance et léger zoom au survol (PC) */
+        .fc-v-event:hover {
+            filter: brightness(0.95);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+            z-index: 5 !important;
+        }
+
+        /* Feedback visuel pour le toucher (Tablette/Mobile) */
+        .fc-v-event:active {
+            transform: scale(0.98);
+            filter: brightness(0.9);
         }
 
         .fc-event-main { padding: 4px !important; }
@@ -48,9 +64,41 @@
             color: var(--brand-dark) !important; 
             font-weight: 700 !important;
             font-size: 0.85rem !important;
+            white-space: normal !important;
         }
 
-        /* MODAL */
+        /* --- STYLE DES HEURES --- */
+        .fc-timegrid-slot-label-cushion, .fc-timegrid-axis-cushion {
+            color: var(--brand-dark) !important;
+            font-weight: 700 !important;
+        }
+
+        /* --- BOUTONS --- */
+        .fc-button {
+            background: white !important;
+            color: var(--brand-dark) !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 10px !important;
+            font-weight: 700 !important;
+            transition: all 0.2s !important;
+        }
+
+        .fc-button-active {
+            background: var(--brand-dark) !important;
+            color: white !important;
+            border-color: var(--brand-dark) !important;
+        }
+
+        /* --- EN-TÊTES --- */
+        .fc-col-header-cell-cushion {
+            color: var(--brand-dark) !important;
+            font-weight: 800 !important;
+            text-transform: capitalize;
+            padding: 10px 0 !important;
+            text-decoration: none !important;
+        }
+
+        /* --- MODAL --- */
         #detailsModal {
             display: none; position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
@@ -76,14 +124,14 @@
             font-weight: 800; color: var(--brand-dark); cursor: pointer;
         }
 
-        /* Badge pour différencier client vs bénéficiaire */
-        .beneficiary-tag {
-            font-size: 0.7rem;
-            background: #e2e8f0;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-left: 5px;
-            color: var(--brand-dark);
+        /* Responsive spécifique Tablette/Mobile */
+        @media (max-width: 768px) {
+            .fc-header-toolbar {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            h2 { font-size: 1.3rem; text-align: center; }
         }
     </style>
 </head>
@@ -118,26 +166,32 @@
                 allDaySlot: false,
                 slotMinTime: '09:00:00',
                 slotMaxTime: '19:00:00',
+                expandRows: true,
                 height: 'auto',
+                handleWindowResize: true,
+                longPressDelay: 1, // Réduit le délai pour le tactile
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
+                buttonText: {
+                    today: "Aujourd'hui", month: "Mois", week: "Semaine", day: "Jour",
+                    prev: "Précédent", next: "Suivant"
+                },
                 
                 eventClick: function(info) {
                     const p = info.event.extendedProps;
                     const formatTime = (date) => date.toLocaleTimeString('fr-FR', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
+                        hour: '2-digit', minute: '2-digit' 
                     });
                     
                     const content = `
                         <div class="detail-row"><div class="detail-label">Client (Appelant)</div><div class="detail-value">${p.clientName || 'Inconnu'}</div></div>
-                        <div class="detail-row"><div class="detail-label">Bénéficiaire du soin</div><div class="detail-value">${p.beneficiary || 'Identique au client'}</div></div>
+                        <div class="detail-row"><div class="detail-label">Bénéficiaire</div><div class="detail-value">${p.beneficiary || 'Identique'}</div></div>
                         <div class="detail-row"><div class="detail-label">Numéro</div><div class="detail-value">${p.phone || '-'}</div></div>
                         <div class="detail-row"><div class="detail-label">Prestation</div><div class="detail-value">${p.service || 'Soin'}</div></div>
-                        <div class="detail-row"><div class="detail-label">Notes IA</div><div class="detail-value" style="font-weight: 500; color: #475569;">${p.notes || 'Aucune note'}</div></div>
+                        <div class="detail-row"><div class="detail-label">Notes IA</div><div class="detail-value" style="font-weight:500; color:#475569;">${p.notes || 'Aucune note'}</div></div>
                         <div class="detail-row" style="border:none"><div class="detail-label">Horaire</div><div class="detail-value">${formatTime(info.event.start)} — ${formatTime(info.event.end)}</div></div>
                     `;
                     document.getElementById('modalContent').innerHTML = content;
@@ -157,8 +211,6 @@
                         const events = (data || []).map(appt => {
                             const cleanStart = appt.start_time.substring(0, 19);
                             const cleanEnd = appt.end_time.substring(0, 19);
-                            
-                            // On affiche en priorité le nom du bénéficiaire sur le calendrier
                             const displayName = appt.beneficiary_name || appt.clients?.name || 'Client';
 
                             return {
@@ -174,11 +226,8 @@
                                 }
                             };
                         });
-                        
                         successCallback(events);
-                    } catch (err) {
-                        failureCallback(err);
-                    }
+                    } catch (err) { failureCallback(err); }
                 }
             });
 
