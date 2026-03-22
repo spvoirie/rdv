@@ -2,7 +2,8 @@
 <html lang='fr'>
 <head>
     <meta charset='utf-8' />
-    <title>L'Atelier Capillaire | Dashboard Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/> 
+    <title>L'Atelier Capillaire | Dashboard Expert</title>
     
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -10,108 +11,83 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        :root { 
-            --brand-dark: #0f172a; 
-            --brand-bg: #f8fafc; 
-            --success: #10b981;
-            --danger: #ef4444;
-        }
-
-        html, body { 
-            margin: 0; padding: 0; min-height: 100%; 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: var(--brand-bg); 
-            overflow-y: auto; 
-        }
-
+        :root { --brand-dark: #0f172a; --brand-bg: #f8fafc; --success: #10b981; --danger: #ef4444; --accent: #3b82f6; }
+        
+        html, body { margin: 0; padding: 0; min-height: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--brand-bg); -webkit-tap-highlight-color: transparent; }
         .container { padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; }
         
-        /* --- RUBRIQUE RAPPELS (HAUT GAUCHE) --- */
-        .top-section { display: flex; gap: 20px; align-items: flex-start; }
-        .rappel-box {
-            background: white; border-radius: 20px; padding: 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05); min-width: 250px; max-height: 200px; overflow-y: auto;
-        }
-        .rappel-box h3 { font-size: 0.9rem; font-weight: 800; margin-top: 0; color: var(--danger); text-transform: uppercase; }
+        /* --- RUBRIQUE RAPPELS --- */
+        .top-section { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+        .rappel-box { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); min-width: 250px; max-height: 220px; overflow-y: auto; flex: 1; }
+        .rappel-box h3 { font-size: 0.9rem; font-weight: 800; margin-top: 0; color: var(--danger); text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+        
         .rappel-item { 
-            padding: 8px 12px; border-radius: 8px; background: #fff1f2; margin-bottom: 8px; 
+            padding: 12px; border-radius: 12px; background: #fff1f2; margin-bottom: 8px; 
             font-size: 0.85rem; font-weight: 700; cursor: pointer; color: var(--danger); border: 1px solid #fecdd3;
-            transition: transform 0.1s;
+            transition: all 0.2s ease;
         }
-        .rappel-item:hover { transform: scale(1.02); }
+        .rappel-item:hover { background: #fee2e2; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1); }
+        .rappel-item:active { transform: scale(0.96); }
 
-        header { padding: 0 10px; }
-        h2 { font-size: 1.6rem; font-weight: 800; color: var(--brand-dark); margin: 0; }
+        #calendar { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
 
-        #calendar {
-            background: white; border-radius: 20px; padding: 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05); flex-grow: 1;
+        /* --- STYLE DES RDV --- */
+        .fc-v-event { background-color: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 8px !important; cursor: pointer !important; transition: transform 0.1s; }
+        .fc-v-event:hover { filter: brightness(0.98); }
+        .event-ok { border-left: 6px solid var(--success) !important; }
+        .event-rappel { border-left: 6px solid var(--danger) !important; background-color: #fff1f2 !important; }
+
+        /* --- MODAL --- */
+        #detailsModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 24px; box-shadow: 0 30px 60px rgba(0,0,0,0.3); z-index: 2000; width: 95%; max-width: 450px; overflow: hidden; }
+        .modal-header { background: var(--brand-dark); color: white; padding: 18px 20px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Bouton Déverrouiller */
+        .unlock-btn { 
+            font-size: 0.7rem; background: rgba(255,255,255,0.15); padding: 8px 14px; border-radius: 10px; 
+            cursor: pointer; font-weight: 800; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.1);
         }
+        .unlock-btn:hover { background: rgba(255,255,255,0.25); transform: scale(1.05); }
+        .unlock-btn.active { background: var(--success); color: white; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
 
-        /* --- STYLE DES RDV (TON STYLE REPRIS) --- */
-        .fc-v-event {
-            background-color: #ffffff !important;
-            border: 1px solid #e2e8f0 !important;
-            border-radius: 8px !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
-            transition: all 0.1s ease !important;
-        }
-        /* VERT SI OK */
-        .event-ok { border-left: 5px solid var(--success) !important; }
-        /* ROUGE SI RAPPEL */
-        .event-rappel { border-left: 5px solid var(--danger) !important; background-color: #fff1f2 !important; }
-
-        .fc-event-title { color: var(--brand-dark) !important; font-weight: 700 !important; font-size: 0.85rem !important; }
-
-        /* --- MODAL AVEC SECURITE --- */
-        #detailsModal {
-            display: none; position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: white; border-radius: 24px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
-            z-index: 2000; width: 90%; max-width: 400px; overflow: hidden;
-        }
-
-        .modal-header { 
-            background: var(--brand-dark); color: white; padding: 20px; 
-            font-weight: 800; display: flex; justify-content: space-between; align-items: center; 
-        }
-        .unlock-btn { font-size: 0.7rem; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 8px; cursor: pointer; }
-        .unlock-btn.active { background: var(--success); }
-
-        .modal-body { padding: 25px; }
-        .detail-row { display: flex; flex-direction: column; margin-bottom: 15px; }
-        .detail-label { color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .modal-body { padding: 20px; max-height: 70vh; overflow-y: auto; }
+        .detail-row { margin-bottom: 14px; }
+        .detail-label { color: #64748b; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        
+        /* Inputs */
         .edit-input { 
-            border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; font-weight: 700; 
-            background: #f8fafc; color: var(--brand-dark); font-family: inherit;
+            width: 100%; border: 1.5px solid #f1f5f9; padding: 12px; border-radius: 12px; 
+            font-weight: 700; background: #f8fafc; color: var(--brand-dark); font-family: inherit; 
+            box-sizing: border-box; transition: all 0.2s; font-size: 16px; /* 16px évite le zoom auto sur iPhone */
         }
-        .edit-input[readonly] { cursor: not-allowed; border-color: transparent; }
-        .edit-input.unlocked { background: white; border: 1px solid var(--brand-dark); }
+        .edit-input.unlocked { background: white; border-color: var(--brand-dark); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .edit-input[readonly] { cursor: not-allowed; opacity: 0.8; }
 
-        .modal-footer { display: flex; gap: 10px; padding: 0 25px 25px; }
-        .btn { flex: 1; border: none; padding: 15px; border-radius: 10px; font-weight: 800; cursor: pointer; }
-        .btn-save { background: var(--brand-dark); color: white; opacity: 0.5; pointer-events: none; }
-        .btn-save.ready { opacity: 1; pointer-events: auto; }
-        .btn-close { background: #f1f5f9; color: #64748b; }
+        /* BOUTONS FOOTER */
+        .modal-footer { display: flex; gap: 12px; padding: 0 20px 25px; }
+        .btn { flex: 1; border: none; padding: 16px; border-radius: 14px; font-weight: 800; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
+        
+        .btn-save { background: var(--brand-dark); color: white; opacity: 0.2; pointer-events: none; }
+        .btn-save.ready { opacity: 1; pointer-events: auto; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2); }
+        .btn-save.ready:hover { transform: translateY(-2px); filter: brightness(1.2); }
+        .btn-save:active { transform: scale(0.98); }
 
-        #overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); z-index: 1000;
-        }
+        .btn-close { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+        .btn-close:hover { background: #e2e8f0; color: var(--brand-dark); }
+
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(6px); z-index: 1000; transition: all 0.3s; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="top-section">
-            <div class="rappel-box" id="rappelBox">
-                <h3>🚨 À rappeler</h3>
+            <div class="rappel-box">
+                <h3>🚨 À RAPPELER</h3>
                 <div id="rappelList"></div>
             </div>
             <header>
-                <h2>L'Atelier Capillaire</h2>
-                <p style="font-size: 0.8rem; font-weight: 700; color: #64748b;">Dashboard de Gestion</p>
+                <h2 style="letter-spacing: -1px;">L'Atelier Capillaire</h2>
+                <p style="font-size: 0.8rem; font-weight: 700; color: #64748b; margin: 0;">Gestion des rendez-vous & rappels</p>
             </header>
         </div>
         <div id='calendar'></div>
@@ -120,7 +96,7 @@
     <div id="overlay" onclick="closeModal()"></div>
     <div id="detailsModal">
         <div class="modal-header">
-            <span>FICHE RDV</span>
+            <span style="letter-spacing: 0.5px;">FICHE CLIENT</span>
             <div id="unlockToggle" class="unlock-btn">🔒 DÉVERROUILLER</div>
         </div>
         <div class="modal-body" id="modalContent"></div>
@@ -135,116 +111,98 @@
         const SB_KEY = 'sb_publishable_GgDD8xm-IDHVVRvC-js2WA_WSZe0iCp';
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
         let currentEvent = null;
-        let allEventsData = [];
+        let allData = [];
 
-        async function initCalendar() {
-            const calendarEl = document.getElementById('calendar');
-            const calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'timeGridWeek',
-                locale: 'fr',
-                timeZone: 'local',
-                firstDay: 1,
-                allDaySlot: false,
-                slotMinTime: '09:00:00',
-                slotMaxTime: '19:00:00',
+        async function init() {
+            const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+                initialView: 'timeGridWeek', locale: 'fr', firstDay: 1, slotMinTime: '09:00:00', slotMaxTime: '19:00:00',
                 headerToolbar: { left: 'prev,next today', center: 'title', right: 'timeGridWeek,timeGridDay' },
-                
                 eventClick: (info) => openModal(info.event),
-
-                events: async function(info, successCallback, failureCallback) {
-                    try {
-                        const { data, error } = await supabaseClient
-                            .from('appointments')
-                            .select('id, start_time, end_time, beneficiary_name, notes, clients(id, name, phone_number), services(name)')
-                            .neq('status', 'cancelled');
-
-                        if (error) throw error;
-                        allEventsData = data;
-                        updateRappelList();
-
-                        const events = data.map(appt => {
-                            const isRappel = appt.beneficiary_name?.toUpperCase().includes('RAPPEL') || appt.notes?.toUpperCase().includes('RAPPEL');
-                            return {
-                                id: appt.id,
-                                title: (appt.beneficiary_name || appt.clients?.name) + " (" + (appt.services?.name || 'Soin') + ")",
-                                start: appt.start_time,
-                                end: appt.end_time,
-                                className: isRappel ? 'event-rappel' : 'event-ok',
-                                extendedProps: { ...appt, isRappel }
-                            };
-                        });
-                        successCallback(events);
-                    } catch (err) { failureCallback(err); }
+                events: async (info, success, failure) => {
+                    const { data, error } = await supabaseClient.from('appointments').select('*, clients(*), services(name)').neq('status', 'cancelled');
+                    if (error) return failure(error);
+                    allData = data;
+                    updateRappels();
+                    success(data.map(a => ({
+                        id: a.id, title: (a.beneficiary_name || a.clients?.name), start: a.start_time, end: a.end_time,
+                        className: (a.beneficiary_name?.toUpperCase().includes('RAPPEL') || a.notes?.toUpperCase().includes('RAPPEL')) ? 'event-rappel' : 'event-ok',
+                        extendedProps: a
+                    })));
                 }
             });
             calendar.render();
-            window.mainCalendar = calendar;
+            window.cal = calendar;
         }
 
-        function updateRappelList() {
+        function updateRappels() {
             const list = document.getElementById('rappelList');
             list.innerHTML = '';
-            const rappels = allEventsData.filter(a => a.beneficiary_name?.toUpperCase().includes('RAPPEL') || a.notes?.toUpperCase().includes('RAPPEL'));
-            
-            if(rappels.length === 0) list.innerHTML = '<p style="font-size:0.7rem; font-weight:700;">Aucun rappel</p>';
-            
+            const rappels = allData.filter(a => a.beneficiary_name?.toUpperCase().includes('RAPPEL') || a.notes?.toUpperCase().includes('RAPPEL'));
             rappels.forEach(r => {
-                const div = document.createElement('div');
-                div.className = 'rappel-item';
-                div.innerText = (r.beneficiary_name || r.clients?.name);
-                div.onclick = () => {
-                    const event = window.mainCalendar.getEventById(r.id);
-                    if(event) openModal(event);
-                };
-                list.appendChild(div);
+                const d = document.createElement('div'); d.className = 'rappel-item';
+                d.innerText = r.beneficiary_name || r.clients?.name;
+                d.onclick = () => openModal(window.cal.getEventById(r.id));
+                list.appendChild(d);
             });
         }
 
         function openModal(event) {
-            currentEvent = event;
-            const p = event.extendedProps;
-            const content = `
-                <div class="detail-row"><label class="detail-label">Client (Compte)</label><input type="text" id="editClient" class="edit-input" value="${p.clients?.name || ''}" readonly></div>
-                <div class="detail-row"><label class="detail-label">Bénéficiaire</label><input type="text" id="editBene" class="edit-input" value="${p.beneficiary_name || ''}" readonly></div>
-                <div class="detail-row"><label class="detail-label">Numéro</label><input type="text" id="editPhone" class="edit-input" value="${p.clients?.phone_number || ''}" readonly></div>
-                <div class="detail-row"><label class="detail-label">Notes IA / Rappel</label><textarea id="editNotes" class="edit-input" readonly style="min-height:60px; resize:none;">${p.notes || ''}</textarea></div>
+            currentEvent = event; const p = event.extendedProps;
+            const formatDate = (iso) => iso ? new Date(iso).toLocaleString('fr-FR') : 'Inconnue';
+            
+            // Formatage pour input datetime-local (AAAA-MM-JJTHH:MM)
+            const formatForInput = (iso) => iso ? iso.substring(0, 16) : '';
+
+            document.getElementById('modalContent').innerHTML = `
+                <div class="detail-row"><label class="detail-label">Client (Compte Principal)</label><input type="text" id="editClient" class="edit-input" value="${p.clients?.name || ''}" readonly></div>
+                <div class="detail-row"><label class="detail-label">Bénéficiaire / Sujet</label><input type="text" id="editBene" class="edit-input" value="${p.beneficiary_name || ''}" readonly></div>
+                <div class="detail-row"><label class="detail-label">Téléphone</label>
+                    <div style="display:flex; gap:10px;"><input type="text" id="editPhone" class="edit-input" value="${p.clients?.phone_number || ''}" readonly>
+                    <a href="tel:${p.clients?.phone_number}" style="display:flex; align-items:center; justify-content:center; width:50px; background:var(--brand-dark); color:white; border-radius:12px; text-decoration:none;">📞</a></div>
+                </div>
+                <div style="display:flex; gap:12px;">
+                    <div class="detail-row" style="flex:1;"><label class="detail-label">Début</label><input type="datetime-local" id="editStart" class="edit-input" value="${formatForInput(p.start_time)}" readonly></div>
+                    <div class="detail-row" style="flex:1;"><label class="detail-label">Fin</label><input type="datetime-local" id="editEnd" class="edit-input" value="${formatForInput(p.end_time)}" readonly></div>
+                </div>
+                <div class="detail-row"><label class="detail-label">Notes de l'entretien</label><textarea id="editNotes" class="edit-input" readonly style="min-height:80px; resize:none;">${p.notes || ''}</textarea></div>
+                <div style="font-size: 0.65rem; color: #94a3b8; padding-top:10px; border-top:1px solid #f1f5f9;">
+                    Création : ${formatDate(p.created_at)} | Modif : ${formatDate(p.updated_at || p.created_at)}
+                </div>
             `;
-            document.getElementById('modalContent').innerHTML = content;
             document.getElementById('detailsModal').style.display = 'block';
             document.getElementById('overlay').style.display = 'block';
             resetSecurity();
         }
 
         document.getElementById('unlockToggle').onclick = function() {
-            const isLocked = this.innerText.includes('🔒');
-            const inputs = document.querySelectorAll('.edit-input');
-            inputs.forEach(i => { i.readOnly = !isLocked; i.classList.toggle('unlocked', isLocked); });
-            this.innerText = isLocked ? "🔓 MODIFICATION" : "🔒 DÉVERROUILLER";
-            this.classList.toggle('active', isLocked);
-            document.getElementById('saveBtn').classList.toggle('ready', isLocked);
+            const isL = this.innerText.includes('🔒');
+            document.querySelectorAll('.edit-input').forEach(i => { i.readOnly = !isL; i.classList.toggle('unlocked', isL); });
+            this.innerText = isL ? "🔓 MODIFICATION" : "🔒 DÉVERROUILLER";
+            this.classList.toggle('active', isL);
+            document.getElementById('saveBtn').classList.toggle('ready', isL);
         };
 
         document.getElementById('saveBtn').onclick = async function() {
-            const p = currentEvent.extendedProps;
-            const { error: err1 } = await supabaseClient.from('appointments').update({ beneficiary_name: document.getElementById('editBene').value, notes: document.getElementById('editNotes').value }).eq('id', currentEvent.id);
-            const { error: err2 } = await supabaseClient.from('clients').update({ name: document.getElementById('editClient').value, phone_number: document.getElementById('editPhone').value }).eq('id', p.clients.id);
+            const up1 = supabaseClient.from('appointments').update({ 
+                beneficiary_name: document.getElementById('editBene').value, 
+                notes: document.getElementById('editNotes').value,
+                start_time: document.getElementById('editStart').value,
+                end_time: document.getElementById('editEnd').value,
+                updated_at: new Date().toISOString()
+            }).eq('id', currentEvent.id);
             
-            if(!err1 && !err2) { window.mainCalendar.refetchEvents(); closeModal(); }
+            const up2 = supabaseClient.from('clients').update({ 
+                name: document.getElementById('editClient').value, 
+                phone_number: document.getElementById('editPhone').value 
+            }).eq('id', currentEvent.extendedProps.clients.id);
+
+            const res = await Promise.all([up1, up2]);
+            if(!res.some(r => r.error)) { window.cal.refetchEvents(); closeModal(); }
         };
 
-        function resetSecurity() {
-            const ut = document.getElementById('unlockToggle');
-            ut.innerText = "🔒 DÉVERROUILLER";
-            ut.classList.remove('active');
-            document.getElementById('saveBtn').classList.remove('ready');
-        }
-
-        function closeModal() {
-            document.getElementById('detailsModal').style.display = 'none';
-            document.getElementById('overlay').style.display = 'none';
-        }
-
-        window.onload = initCalendar;
+        function resetSecurity() { const ut = document.getElementById('unlockToggle'); ut.innerText = "🔒 DÉVERROUILLER"; ut.classList.remove('active'); document.getElementById('saveBtn').classList.remove('ready'); }
+        function closeModal() { document.getElementById('detailsModal').style.display = 'none'; document.getElementById('overlay').style.display = 'none'; }
+        window.onload = init;
     </script>
 </body>
 </html>
