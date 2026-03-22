@@ -52,11 +52,9 @@
         /* CALENDAR CUSTOMIZATION */
         #calendar { background: white; border-radius: 24px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid var(--border); }
         
-        /* Correction visibilité en-têtes (Jour/Chiffre) */
         .fc .fc-col-header-cell-cushion { color: var(--brand-dark) !important; font-weight: 700 !important; text-decoration: none !important; padding: 8px !important; display: block !important; }
         .fc .fc-daygrid-day-number { color: var(--brand-dark) !important; font-weight: 700 !important; text-decoration: none !important; }
 
-        /* STYLE DES BULLES RDV (Visibilité immédiate) */
         .fc-event { 
             cursor: pointer !important; 
             transition: all 0.2s ease !important;
@@ -68,10 +66,9 @@
         }
         .fc-event:hover { transform: scale(1.02); z-index: 10 !important; }
         
-        /* Contenu textuel dans la bulle */
         .fc-event-main { color: var(--brand-dark) !important; padding: 4px !important; }
         .fc-event-time { font-weight: 800 !important; color: var(--brand-dark) !important; font-size: 0.7rem !important; }
-        .fc-event-title { font-weight: 700 !important; color: var(--brand-dark) !important; font-size: 0.75rem !important; display: block !important; }
+        .fc-event-title { font-weight: 700 !important; color: var(--brand-dark) !important; font-size: 0.75rem !important; display: block !important; white-space: pre-wrap !important; }
 
         /* MODALS */
         #detailsModal, #listRappelsModal { 
@@ -91,9 +88,9 @@
             border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
         }
         .rappel-info b { display: block; color: var(--brand-dark); font-size: 1rem; }
-        .rappel-info span { font-size: 0.8rem; color: #64748b; }
+        .rappel-info span { font-size: 0.8rem; color: #64748b; display: block; margin-top: 2px; }
+        .rappel-phone { font-weight: 700; color: var(--accent); font-size: 0.85rem; margin-top: 4px; display: block; }
         
-        /* DETAILS RDV STYLE PRÉCÉDENT */
         .unlock-badge { font-size: 0.65rem; font-weight: 800; padding: 6px 12px; border-radius: 8px; background: #f1f5f9; color: #64748b; cursor: pointer; }
         .unlock-badge.active { background: var(--brand-dark); color: white; }
         
@@ -217,6 +214,7 @@
                 <div class="rappel-info">
                     <b>${r.beneficiary_name.replace('RAPPEL : ', '')}</b>
                     <span>${r.notes || 'Sans motif'}</span>
+                    <span class="rappel-phone">${r.clients?.phone_number || ''}</span>
                 </div>
                 <div style="display:flex; gap:8px;">
                     <a href="tel:${r.clients?.phone_number}" class="btn-call-mini">📞</a>
