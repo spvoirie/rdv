@@ -2,7 +2,7 @@
 <html lang='fr'>
 <head>
     <meta charset='utf-8' />
-    <title>L'Atelier Capillaire | Gestion Sécurisée</title>
+    <title>L'Atelier Capillaire | Dashboard Pro Connecté</title>
     
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -10,72 +10,84 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        :root { --brand-dark: #0f172a; --brand-bg: #f8fafc; --accent: #3b82f6; }
-
-        html, body { margin: 0; padding: 0; min-height: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--brand-bg); }
-        .container { padding: 20px; box-sizing: border-box; }
-        header { margin-bottom: 20px; padding: 0 10px; }
-        h2 { font-size: 1.6rem; font-weight: 800; color: var(--brand-dark); }
-
-        #calendar { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-
-        /* --- STYLE DES RDV --- */
-        .fc-v-event {
-            background-color: #ffffff !important;
-            border: 1px solid #e2e8f0 !important;
-            border-left: 5px solid var(--brand-dark) !important;
-            border-radius: 8px !important;
-            cursor: pointer !important;
-            transition: all 0.1s ease !important;
+        :root { 
+            --brand-dark: #0f172a; 
+            --brand-bg: #f1f5f9; 
+            --accent: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b; /* Orange pour les rappels */
         }
-        .fc-v-event:hover { filter: brightness(0.95); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important; }
-        .fc-event-title { color: var(--brand-dark) !important; font-weight: 700 !important; font-size: 0.85rem !important; }
+
+        html, body { margin: 0; padding: 0; min-height: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--brand-bg); color: var(--brand-dark); }
+        .container { padding: 30px; box-sizing: border-box; max-width: 1400px; margin: auto; }
+        header h2 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 25px; }
+
+        #calendar { 
+            background: white; border-radius: 24px; padding: 25px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        /* --- INDICATEURS VISUELS SUR CALENDRIER --- */
+        .fc-v-event {
+            background: #ffffff !important; border: 1px solid #e2e8f0 !important;
+            border-left: 6px solid var(--brand-dark) !important; border-radius: 12px !important;
+            transition: all 0.2s ease !important;
+        }
+        
+        /* Style spécifique pour les RAPPELS */
+        .event-rappel {
+            border-left: 6px solid var(--warning) !important;
+            background: #fffbeb !important; /* Fond légèrement ambré */
+        }
+
+        .status-dot {
+            display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+            margin-right: 6px;
+        }
+        .dot-confirmed { background-color: var(--success); }
+        .dot-warning { background-color: var(--warning); animation: pulse 1.5s infinite; }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
 
         /* --- MODAL --- */
         #detailsModal {
             display: none; position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: white; border-radius: 24px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
-            z-index: 2000; width: 90%; max-width: 420px; overflow: hidden;
+            transform: translate(-50%, -55%);
+            background: white; border-radius: 32px;
+            box-shadow: 0 40px 100px rgba(15, 23, 42, 0.2);
+            z-index: 2000; width: 90%; max-width: 450px; overflow: hidden;
         }
 
-        .modal-header { 
-            background: var(--brand-dark); color: white; padding: 20px; 
-            font-weight: 800; display: flex; justify-content: space-between; align-items: center;
+        .modal-header { background: var(--brand-dark); color: white; padding: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .lock-badge {
+            background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 100px;
+            font-size: 0.75rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.2);
         }
+        .lock-badge.unlocked { background: var(--success); }
 
-        .modal-body { padding: 20px; max-height: 70vh; overflow-y: auto; }
+        .modal-body { padding: 30px; }
+        .detail-row { margin-bottom: 20px; }
+        .detail-label { color: #94a3b8; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; display: block; }
         
-        .detail-row { margin-bottom: 15px; position: relative; }
-        .detail-label { color: #64748b; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; display: block; }
-        
-        /* Inputs Verrouillés par défaut */
         .edit-input {
-            width: 100%; padding: 12px; border: 1.5px solid #f1f5f9; border-radius: 10px;
-            font-family: inherit; font-size: 0.9rem; font-weight: 700; color: var(--brand-dark);
-            box-sizing: border-box; background: #f8fafc; cursor: not-allowed;
+            width: 100%; padding: 14px; border: 2px solid #f1f5f9; border-radius: 14px;
+            font-family: inherit; font-size: 0.95rem; font-weight: 700; color: var(--brand-dark);
+            box-sizing: border-box; background: #f8fafc; transition: all 0.3s; outline: none;
         }
-        
-        /* État Déverrouillé */
-        .edit-input.unlocked {
-            background: white; border-color: var(--accent); cursor: text;
-        }
+        .edit-input[readonly] { opacity: 0.7; cursor: not-allowed; border-style: dashed; }
+        .edit-input.unlocked { background: white; border-color: #e2e8f0; }
 
-        .unlock-toggle {
-            font-size: 0.7rem; color: var(--accent); cursor: pointer; text-decoration: underline; font-weight: 700;
-        }
+        .modal-footer { display: flex; gap: 12px; padding: 0 30px 30px; }
+        .btn { flex: 1; border: none; padding: 16px; border-radius: 16px; font-weight: 800; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
+        .btn-save { background: var(--brand-dark); color: white; }
+        .btn-save:disabled { opacity: 0.3; cursor: not-allowed; }
+        .btn-close { background: #f1f5f9; color: #64748b; }
 
-        .modal-footer { display: flex; gap: 10px; padding: 15px 20px 20px; background: #f8fafc; }
-        .btn { flex: 1; border: none; padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; }
-        .btn-save { background: var(--brand-dark); color: white; opacity: 0.5; pointer-events: none; }
-        .btn-save.active { opacity: 1; pointer-events: auto; }
-        .btn-close { background: white; color: #64748b; border: 1px solid #e2e8f0; }
-
-        #overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); z-index: 1000;
-        }
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 1000; }
     </style>
 </head>
 <body>
@@ -88,14 +100,15 @@
     <div id="overlay" onclick="closeModal()"></div>
     <div id="detailsModal">
         <div class="modal-header">
-            <span>Détails Rendez-vous</span>
-            <span id="unlockAll" class="unlock-toggle" style="color: #60a5fa;">🔓 DÉVERROUILLER</span>
-        </div>
-        <div class="modal-body" id="modalContent">
+            <span style="font-weight: 800;">Fiche de soin</span>
+            <div id="lockToggle" class="lock-badge">
+                <span id="lockIcon">🔒</span> <span id="lockText">SÉCURISÉ</span>
             </div>
+        </div>
+        <div class="modal-body" id="modalContent"></div>
         <div class="modal-footer">
-            <button class="btn btn-close" onclick="closeModal()">FERMER</button>
-            <button class="btn btn-save" id="saveBtn">ENREGISTRER</button>
+            <button class="btn btn-close" onclick="closeModal()">Fermer</button>
+            <button class="btn btn-save" id="saveBtn" disabled>Enregistrer</button>
         </div>
     </div>
 
@@ -111,112 +124,117 @@
                 initialView: 'timeGridWeek',
                 locale: 'fr',
                 timeZone: 'local',
-                firstDay: 1,
+                allDaySlot: false,
                 slotMinTime: '09:00:00',
                 slotMaxTime: '19:00:00',
-                height: 'auto',
                 headerToolbar: { left: 'prev,next today', center: 'title', right: 'timeGridWeek,timeGridDay' },
                 
+                // Personnalisation de l'affichage du titre avec la pastille
+                eventContent: function(arg) {
+                    let dotClass = arg.event.extendedProps.isRappel ? 'dot-warning' : 'dot-confirmed';
+                    let html = `<div class="fc-event-main-frame">
+                                    <div class="fc-event-title-container">
+                                        <div class="fc-event-title fc-sticky">
+                                            <span class="status-dot ${dotClass}"></span>${arg.event.title}
+                                        </div>
+                                    </div>
+                                </div>`;
+                    return { html: html };
+                },
+
                 eventClick: function(info) {
                     currentEvent = info.event;
                     const p = currentEvent.extendedProps;
                     
                     document.getElementById('modalContent').innerHTML = `
                         <div class="detail-row">
-                            <label class="detail-label">Nom du Bénéficiaire</label>
+                            <label class="detail-label">Propriétaire du Compte</label>
+                            <input type="text" id="editClientName" class="edit-input" value="${p.clientName || ''}" readonly>
+                        </div>
+                        <div class="detail-row">
+                            <label class="detail-label">Bénéficiaire du Soin</label>
                             <input type="text" id="editBeneficiary" class="edit-input" value="${p.beneficiary || ''}" readonly>
                         </div>
                         <div class="detail-row">
-                            <label class="detail-label">Numéro de Téléphone</label>
+                            <label class="detail-label">Numéro Direct</label>
                             <input type="text" id="editPhone" class="edit-input" value="${p.phone || ''}" readonly>
                         </div>
                         <div class="detail-row">
-                            <label class="detail-label">Prestation</label>
-                            <input type="text" id="editService" class="edit-input" value="${p.serviceName || ''}" readonly>
-                        </div>
-                        <div class="detail-row">
-                            <label class="detail-label">Notes de l'Agent IA</label>
-                            <textarea id="editNotes" class="edit-input" readonly style="min-height:80px;">${p.notes || ''}</textarea>
+                            <label class="detail-label">Notes Agent / Raison Rappel</label>
+                            <textarea id="editNotes" class="edit-input" readonly style="min-height:100px;">${p.notes || ''}</textarea>
                         </div>
                     `;
                     
-                    document.getElementById('saveBtn').classList.remove('active');
+                    resetLock();
                     document.getElementById('detailsModal').style.display = 'block';
                     document.getElementById('overlay').style.display = 'block';
                 }
             });
 
-            // GESTION DU DÉVERROUILLAGE
-            document.getElementById('unlockAll').onclick = function() {
+            document.getElementById('lockToggle').onclick = function() {
+                const isLocked = this.classList.toggle('unlocked');
                 const inputs = document.querySelectorAll('.edit-input');
-                inputs.forEach(input => {
-                    input.readOnly = false;
-                    input.classList.add('unlocked');
-                });
-                document.getElementById('saveBtn').classList.add('active');
-                this.innerText = "🔒 MODIFICATION ACTIVE";
+                inputs.forEach(input => { input.readOnly = !isLocked; input.classList.toggle('unlocked', isLocked); });
+                document.getElementById('saveBtn').disabled = !isLocked;
+                document.getElementById('lockIcon').innerText = isLocked ? "🔓" : "🔒";
+                document.getElementById('lockText').innerText = isLocked ? "ÉDITION LIBRE" : "SÉCURISÉ";
             };
 
-            // SAUVEGARDE
             document.getElementById('saveBtn').onclick = async function() {
-                const bene = document.getElementById('editBeneficiary').value;
-                const note = document.getElementById('editNotes').value;
-                const phone = document.getElementById('editPhone').value;
-                const eventId = currentEvent.id;
-                const clientId = currentEvent.extendedProps.clientId;
+                const { error: err1 } = await supabaseClient.from('appointments').update({ 
+                    beneficiary_name: document.getElementById('editBeneficiary').value, 
+                    notes: document.getElementById('editNotes').value 
+                }).eq('id', currentEvent.id);
+                
+                const { error: err2 } = await supabaseClient.from('clients').update({ 
+                    name: document.getElementById('editClientName').value, 
+                    phone_number: document.getElementById('editPhone').value 
+                }).eq('id', currentEvent.extendedProps.clientId);
 
-                // 1. Update RDV
-                const updateAppt = supabaseClient
-                    .from('appointments')
-                    .update({ beneficiary_name: bene, notes: note })
-                    .eq('id', eventId);
-
-                // 2. Update Client (pour le numéro)
-                const updateClient = supabaseClient
-                    .from('clients')
-                    .update({ phone_number: phone })
-                    .eq('id', clientId);
-
-                const results = await Promise.all([updateAppt, updateClient]);
-
-                if (results.some(r => r.error)) {
-                    alert("Erreur lors de la mise à jour");
-                } else {
-                    calendar.refetchEvents();
-                    closeModal();
-                }
+                if (!err1 && !err2) { calendar.refetchEvents(); closeModal(); }
             };
 
-            // CHARGEMENT DES DONNÉES
             calendar.setOption('events', async (info, success) => {
                 const { data } = await supabaseClient
                     .from('appointments')
-                    .select('id, start_time, end_time, beneficiary_name, notes, client_id, clients(id, name, phone_number), services(name)')
+                    .select('id, start_time, end_time, beneficiary_name, notes, clients(id, name, phone_number), services(name)')
                     .neq('status', 'cancelled');
 
-                success((data || []).map(appt => ({
-                    id: appt.id,
-                    title: (appt.beneficiary_name || appt.clients?.name) + " (" + (appt.services?.name || 'Soin') + ")",
-                    start: appt.start_time,
-                    end: appt.end_time,
-                    extendedProps: {
-                        clientName: appt.clients?.name || 'Inconnu',
-                        clientId: appt.clients?.id,
-                        beneficiary: appt.beneficiary_name || '',
-                        phone: appt.clients?.phone_number || '-',
-                        serviceName: appt.services?.name || 'Soin',
-                        notes: appt.notes || ''
-                    }
-                })));
+                success((data || []).map(appt => {
+                    // Un rappel est identifié par le mot "RAPPEL" dans le nom du bénéficiaire
+                    const isRappel = (appt.beneficiary_name && appt.beneficiary_name.includes("RAPPEL"));
+                    return {
+                        id: appt.id,
+                        title: (appt.beneficiary_name || appt.clients?.name) + " (" + (appt.services?.name || 'Soin') + ")",
+                        start: appt.start_time,
+                        end: appt.end_time,
+                        className: isRappel ? 'event-rappel' : '',
+                        extendedProps: {
+                            clientName: appt.clients?.name || '',
+                            clientId: appt.clients?.id,
+                            beneficiary: appt.beneficiary_name || '',
+                            phone: appt.clients?.phone_number || '',
+                            notes: appt.notes || '',
+                            isRappel: isRappel
+                        }
+                    };
+                }));
             });
 
             calendar.render();
         };
 
+        function resetLock() {
+            const l = document.getElementById('lockToggle');
+            l.classList.remove('unlocked');
+            document.getElementById('lockIcon').innerText = "🔒";
+            document.getElementById('lockText').innerText = "SÉCURISÉ";
+            document.getElementById('saveBtn').disabled = true;
+        }
+
         function closeModal() {
             document.getElementById('detailsModal').style.display = 'none';
             document.getElementById('overlay').style.display = 'none';
-            document.getElementById('unlockAll').innerText = "🔓 DÉVERROUILLER";
         }
     </script>
 </body>
