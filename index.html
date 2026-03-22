@@ -3,7 +3,7 @@
 <head>
     <meta charset='utf-8' />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/> 
-    <title>L'Atelier Capillaire | Dashboard Expert</title>
+    <title>L'Atelier Capillaire | Management</title>
     
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -11,182 +11,208 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        :root { --brand-dark: #0f172a; --brand-bg: #f8fafc; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; }
+        :root { 
+            --brand-dark: #0f172a; 
+            --brand-bg: #f8fafc; 
+            --success: #10b981; 
+            --danger: #ef4444; 
+            --border: #e2e8f0;
+        }
         
-        html, body { margin: 0; padding: 0; min-height: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--brand-bg); }
-        .container { padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; }
+        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--brand-bg); color: var(--brand-dark); }
+        .container { padding: 25px; max-width: 1600px; margin: auto; }
+
+        /* HEADER & TOP BAR */
+        .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .rappel-pill { background: #fff1f2; color: var(--danger); padding: 8px 16px; border-radius: 100px; font-weight: 800; font-size: 0.75rem; border: 1px solid #fecdd3; cursor: pointer; transition: 0.2s; }
+        .rappel-pill:hover { transform: scale(1.05); background: var(--danger); color: white; }
+
+        /* MODERN CALENDAR OVERRIDE */
+        #calendar { background: white; border-radius: 24px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid var(--border); }
+        .fc { --fc-border-color: #f1f5f9; --fc-button-bg-color: #ffffff; --fc-button-text-color: #0f172a; --fc-button-border-color: #e2e8f0; --fc-button-hover-bg-color: #f8fafc; }
+        .fc .fc-button-primary:not(:disabled).fc-button-active { background-color: var(--brand-dark) !important; color: white !important; border-color: var(--brand-dark) !important; }
+        .fc .fc-button { font-weight: 700 !important; text-transform: capitalize !important; border-radius: 10px !important; transition: 0.2s; }
         
-        .top-section { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
-        .rappel-box { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); min-width: 250px; max-height: 220px; overflow-y: auto; flex: 1; }
-        .rappel-box h3 { font-size: 0.9rem; font-weight: 800; margin-top: 0; color: var(--danger); text-transform: uppercase; }
+        /* RDV STYLE - TEXTE NOIR VISIBLE */
+        .fc-event { border: 1px solid var(--border) !important; border-radius: 8px !important; padding: 2px 4px !important; box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important; }
+        .fc-event-main { color: var(--brand-dark) !important; font-weight: 700 !important; font-size: 0.8rem !important; padding: 4px !important; }
+        .event-ok { border-left: 5px solid var(--success) !important; background: white !important; }
+        .event-rappel { border-left: 5px solid var(--danger) !important; background: #fff1f2 !important; }
+
+        /* MODAL SOBRE */
+        #detailsModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 28px; z-index: 2000; width: 90%; max-width: 440px; box-shadow: 0 40px 80px rgba(0,0,0,0.2); overflow: hidden; }
+        .modal-header { padding: 20px 25px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+        .modal-title { font-weight: 800; font-size: 1rem; color: var(--brand-dark); }
         
-        .rappel-item { padding: 12px; border-radius: 12px; background: #fff1f2; margin-bottom: 8px; font-size: 0.85rem; font-weight: 700; cursor: pointer; color: var(--danger); border: 1px solid #fecdd3; transition: all 0.2s; }
-        .rappel-item:hover { background: #fee2e2; transform: translateY(-2px); }
+        .unlock-badge { font-size: 0.65rem; font-weight: 800; padding: 6px 12px; border-radius: 8px; background: #f1f5f9; color: #64748b; cursor: pointer; transition: 0.2s; }
+        .unlock-badge.active { background: var(--brand-dark); color: white; }
 
-        #calendar { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .modal-body { padding: 25px; }
+        .input-group { margin-bottom: 18px; }
+        .label { font-size: 0.65rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; display: block; }
+        .field { width: 100%; border: 1.5px solid #f1f5f9; padding: 12px; border-radius: 12px; font-weight: 700; background: #f8fafc; font-family: inherit; box-sizing: border-box; font-size: 15px; transition: 0.2s; outline: none; }
+        .field.unlocked { background: white; border-color: #cbd5e1; }
+        .field[readonly] { color: #64748b; }
 
-        .fc-v-event { background-color: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 8px !important; cursor: pointer !important; }
-        .event-ok { border-left: 6px solid var(--success) !important; }
-        .event-rappel { border-left: 6px solid var(--danger) !important; background-color: #fff1f2 !important; }
+        /* ACTIONS EN BAS DE FICHE */
+        .danger-zone { display: flex; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px dotted #e2e8f0; }
+        .mini-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #f1f5f9; font-size: 0.7rem; font-weight: 800; cursor: pointer; transition: 0.2s; background: white; color: #64748b; }
+        .mini-btn:hover { background: #f8fafc; }
+        .mini-btn.banned { color: var(--danger); border-color: #fee2e2; }
 
-        /* MODAL */
-        #detailsModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 24px; box-shadow: 0 30px 60px rgba(0,0,0,0.3); z-index: 2000; width: 95%; max-width: 480px; overflow: hidden; }
-        .modal-header { background: var(--brand-dark); color: white; padding: 18px 20px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
-        
-        .unlock-btn { font-size: 0.7rem; background: rgba(255,255,255,0.15); padding: 8px 14px; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
-        .unlock-btn.active { background: var(--success); }
+        .modal-footer { padding: 0 25px 25px; display: flex; gap: 10px; }
+        .btn-main { flex: 1; border: none; padding: 15px; border-radius: 14px; font-weight: 800; cursor: pointer; transition: 0.3s; font-size: 0.9rem; }
+        .btn-save { background: var(--brand-dark); color: white; opacity: 0.15; pointer-events: none; }
+        .btn-save.ready { opacity: 1; pointer-events: auto; box-shadow: 0 8px 15px rgba(15,23,42,0.2); }
+        .btn-save.ready:active { transform: scale(0.97); }
 
-        .modal-body { padding: 20px; max-height: 70vh; overflow-y: auto; }
-        .detail-row { margin-bottom: 14px; }
-        .detail-label { color: #64748b; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; display: block; }
-        
-        .edit-input { width: 100%; border: 1.5px solid #f1f5f9; padding: 12px; border-radius: 12px; font-weight: 700; background: #f8fafc; font-family: inherit; box-sizing: border-box; font-size: 16px; }
-        .edit-input.unlocked { background: white; border-color: var(--brand-dark); }
-
-        /* ACTIONS SPECIALES */
-        .action-bar { display: flex; gap: 10px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f1f5f9; }
-        .action-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; }
-        .btn-blacklist { background: #f1f5f9; color: #64748b; }
-        .btn-blacklist.is-banned { background: var(--danger); color: white; }
-        .btn-cancel { background: #fee2e2; color: var(--danger); }
-        .action-btn:hover { filter: brightness(0.9); transform: translateY(-1px); }
-
-        .modal-footer { display: flex; gap: 12px; padding: 0 20px 25px; }
-        .btn { flex: 1; border: none; padding: 16px; border-radius: 14px; font-weight: 800; cursor: pointer; transition: all 0.2s; }
-        .btn-save { background: var(--brand-dark); color: white; opacity: 0.2; pointer-events: none; }
-        .btn-save.ready { opacity: 1; pointer-events: auto; }
-        .btn-close { background: #f1f5f9; color: #64748b; }
-
-        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(6px); z-index: 1000; }
+        #overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.3); backdrop-filter: blur(4px); z-index: 1000; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="top-section">
-            <div class="rappel-box"><h3>🚨 À RAPPELER</h3><div id="rappelList"></div></div>
-            <header><h2>L'Atelier Capillaire</h2><p style="font-weight:700; color:#64748b; margin:0;">Système de Gestion Sécurisé</p></header>
+<div class="container">
+    <div class="top-nav">
+        <div>
+            <h2 style="margin:0; font-weight: 800;">L'Atelier Capillaire</h2>
+            <p style="margin:0; font-size: 0.8rem; font-weight: 600; color: #94a3b8;">Gestion des réservations</p>
         </div>
-        <div id='calendar'></div>
+        <div id="rappelCount" class="rappel-pill">0 Rappels en attente</div>
     </div>
+    <div id='calendar'></div>
+</div>
 
-    <div id="overlay" onclick="closeModal()"></div>
-    <div id="detailsModal">
-        <div class="modal-header"><span>FICHE DOSSIER</span><div id="unlockToggle" class="unlock-btn">🔒 DÉVERROUILLER</div></div>
-        <div class="modal-body">
-            <div class="action-bar">
-                <button id="blacklistBtn" class="action-btn btn-blacklist">🛡️ BLACKLISTER</button>
-                <button id="cancelBtn" class="action-btn btn-cancel">🗑️ ANNULER RDV</button>
+<div id="overlay" onclick="closeModal()"></div>
+<div id="detailsModal">
+    <div class="modal-header">
+        <span class="modal-title">Détails du rendez-vous</span>
+        <div id="unlockToggle" class="unlock-badge">🔒 DÉVERROUILLER</div>
+    </div>
+    <div class="modal-body">
+        <div class="input-group">
+            <span class="label">Propriétaire du compte</span>
+            <input type="text" id="editClient" class="field" readonly>
+        </div>
+        <div class="input-group">
+            <span class="label">Bénéficiaire / Motif</span>
+            <input type="text" id="editBene" class="field" readonly>
+        </div>
+        <div class="input-group">
+            <span class="label">Contact</span>
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="editPhone" class="field" readonly>
+                <a id="callLink" href="#" style="background:var(--brand-dark); padding:12px; border-radius:12px; color:white; text-decoration:none;">📞</a>
             </div>
-            <div id="modalContent"></div>
         </div>
-        <div class="modal-footer">
-            <button class="btn btn-close" onclick="closeModal()">FERMER</button>
-            <button class="btn btn-save" id="saveBtn">ENREGISTRER</button>
+        <div style="display:flex; gap:12px;">
+            <div class="input-group" style="flex:1;"><span class="label">Début</span><input type="datetime-local" id="editStart" class="field" readonly></div>
+            <div class="input-group" style="flex:1;"><span class="label">Fin</span><input type="datetime-local" id="editEnd" class="field" readonly></div>
+        </div>
+        <div class="input-group">
+            <span class="label">Notes</span>
+            <textarea id="editNotes" class="field" readonly style="min-height:60px; resize:none;"></textarea>
+        </div>
+
+        <div class="danger-zone">
+            <button id="blacklistBtn" class="mini-btn">🛡️ BLACKLISTER</button>
+            <button id="cancelBtn" class="mini-btn" style="color:var(--danger)">🗑️ ANNULER RDV</button>
         </div>
     </div>
+    <div class="modal-footer">
+        <button class="btn-main" style="background:#f1f5f9; color:#64748b;" onclick="closeModal()">Fermer</button>
+        <button class="btn-main btn-save" id="saveBtn">Enregistrer</button>
+    </div>
+</div>
 
-    <script>
-        const SB_URL = 'https://ysxawicsmdpirvalczmv.supabase.co';
-        const SB_KEY = 'sb_publishable_GgDD8xm-IDHVVRvC-js2WA_WSZe0iCp';
-        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-        let currentEvent = null;
-        let allData = [];
+<script>
+    const SB_URL = 'https://ysxawicsmdpirvalczmv.supabase.co';
+    const SB_KEY = 'sb_publishable_GgDD8xm-IDHVVRvC-js2WA_WSZe0iCp';
+    const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+    let currentEvent = null;
 
-        async function init() {
-            const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-                initialView: 'timeGridWeek', locale: 'fr', firstDay: 1, slotMinTime: '09:00:00', slotMaxTime: '19:00:00',
-                eventClick: (info) => openModal(info.event),
-                events: async (info, success, failure) => {
-                    const { data, error } = await supabaseClient.from('appointments').select('*, clients(*), services(name)').neq('status', 'cancelled');
-                    if (error) return failure(error);
-                    allData = data; updateRappels();
-                    success(data.map(a => ({
-                        id: a.id, title: (a.beneficiary_name || a.clients?.name), start: a.start_time, end: a.end_time,
-                        className: (a.beneficiary_name?.toUpperCase().includes('RAPPEL') || a.notes?.toUpperCase().includes('RAPPEL')) ? 'event-rappel' : 'event-ok',
-                        extendedProps: a
-                    })));
-                }
-            });
-            calendar.render(); window.cal = calendar;
+    async function init() {
+        const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+            initialView: 'timeGridWeek',
+            locale: 'fr',
+            headerToolbar: { left: 'today prev,next', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+            slotMinTime: '08:00:00',
+            slotMaxTime: '20:00:00',
+            allDaySlot: false,
+            height: 'auto',
+            eventClick: (info) => openModal(info.event),
+            events: async (info, success) => {
+                const { data } = await supabaseClient.from('appointments').select('*, clients(*), services(name)').neq('status', 'cancelled');
+                const rappels = data.filter(a => a.beneficiary_name?.toUpperCase().includes('RAPPEL'));
+                document.getElementById('rappelCount').innerText = `${rappels.length} Rappels en attente`;
+                success(data.map(a => ({
+                    id: a.id, title: (a.beneficiary_name || a.clients?.name), start: a.start_time, end: a.end_time,
+                    className: a.beneficiary_name?.toUpperCase().includes('RAPPEL') ? 'event-rappel' : 'event-ok',
+                    extendedProps: a
+                })));
+            }
+        });
+        calendar.render(); window.cal = calendar;
+    }
+
+    function openModal(event) {
+        currentEvent = event; const p = event.extendedProps;
+        document.getElementById('editClient').value = p.clients?.name || '';
+        document.getElementById('editBene').value = p.beneficiary_name || '';
+        document.getElementById('editPhone').value = p.clients?.phone_number || '';
+        document.getElementById('editStart').value = p.start_time.substring(0,16);
+        document.getElementById('editEnd').value = p.end_time.substring(0,16);
+        document.getElementById('editNotes').value = p.notes || '';
+        document.getElementById('callLink').href = `tel:${p.clients?.phone_number}`;
+        
+        const bBtn = document.getElementById('blacklistBtn');
+        bBtn.innerText = p.clients?.is_blacklisted ? '🛡️ BLACKLISTÉ' : '🛡️ BLACKLISTER';
+        bBtn.classList.toggle('banned', p.clients?.is_blacklisted);
+
+        document.getElementById('detailsModal').style.display = 'block';
+        document.getElementById('overlay').style.display = 'block';
+        resetLock();
+    }
+
+    document.getElementById('unlockToggle').onclick = function() {
+        const isL = this.innerText.includes('🔒');
+        document.querySelectorAll('.field').forEach(f => { f.readOnly = !isL; f.classList.toggle('unlocked', isL); });
+        this.innerText = isL ? "🔓 MODIFICATION" : "🔒 DÉVERROUILLER";
+        this.classList.toggle('active', isL);
+        document.getElementById('saveBtn').classList.toggle('ready', isL);
+    };
+
+    document.getElementById('saveBtn').onclick = async function() {
+        const p = currentEvent.extendedProps;
+        await supabaseClient.from('appointments').update({ 
+            beneficiary_name: document.getElementById('editBene').value, 
+            notes: document.getElementById('editNotes').value,
+            start_time: document.getElementById('editStart').value,
+            end_time: document.getElementById('editEnd').value 
+        }).eq('id', currentEvent.id);
+        await supabaseClient.from('clients').update({ name: document.getElementById('editClient').value, phone_number: document.getElementById('editPhone').value }).eq('id', p.clients.id);
+        window.cal.refetchEvents(); closeModal();
+    };
+
+    document.getElementById('blacklistBtn').onclick = async function() {
+        const cl = currentEvent.extendedProps.clients;
+        await supabaseClient.from('clients').update({ is_blacklisted: !cl.is_blacklisted }).eq('id', cl.id);
+        window.cal.refetchEvents(); closeModal();
+    };
+
+    document.getElementById('cancelBtn').onclick = async function() {
+        if(confirm("Annuler ce RDV ?")) {
+            await supabaseClient.from('appointments').update({ status: 'cancelled' }).eq('id', currentEvent.id);
+            window.cal.refetchEvents(); closeModal();
         }
+    };
 
-        function updateRappels() {
-            const list = document.getElementById('rappelList'); list.innerHTML = '';
-            allData.filter(a => a.beneficiary_name?.toUpperCase().includes('RAPPEL') || a.notes?.toUpperCase().includes('RAPPEL'))
-                   .forEach(r => {
-                        const d = document.createElement('div'); d.className = 'rappel-item';
-                        d.innerText = r.beneficiary_name || r.clients?.name;
-                        d.onclick = () => openModal(window.cal.getEventById(r.id));
-                        list.appendChild(d);
-                   });
-        }
-
-        function openModal(event) {
-            currentEvent = event; const p = event.extendedProps;
-            const isBlacklisted = p.clients?.is_blacklisted;
-            
-            const btnB = document.getElementById('blacklistBtn');
-            btnB.className = isBlacklisted ? 'action-btn btn-blacklist is-banned' : 'action-btn btn-blacklist';
-            btnB.innerText = isBlacklisted ? '🛡️ CLIENT BANNI' : '🛡️ BLACKLISTER';
-
-            document.getElementById('modalContent').innerHTML = `
-                <div class="detail-row"><label class="detail-label">Client Principal</label><input type="text" id="editClient" class="edit-input" value="${p.clients?.name || ''}" readonly></div>
-                <div class="detail-row"><label class="detail-label">Bénéficiaire</label><input type="text" id="editBene" class="edit-input" value="${p.beneficiary_name || ''}" readonly></div>
-                <div class="detail-row"><label class="detail-label">Téléphone</label>
-                    <div style="display:flex; gap:10px;"><input type="text" id="editPhone" class="edit-input" value="${p.clients?.phone_number || ''}" readonly>
-                    <a href="tel:${p.clients?.phone_number}" style="display:flex; align-items:center; justify-content:center; width:50px; background:var(--brand-dark); color:white; border-radius:12px; text-decoration:none;">📞</a></div>
-                </div>
-                <div style="display:flex; gap:12px;">
-                    <div class="detail-row" style="flex:1;"><label class="detail-label">Début</label><input type="datetime-local" id="editStart" class="edit-input" value="${p.start_time.substring(0,16)}" readonly></div>
-                    <div class="detail-row" style="flex:1;"><label class="detail-label">Fin</label><input type="datetime-local" id="editEnd" class="edit-input" value="${p.end_time.substring(0,16)}" readonly></div>
-                </div>
-                <div class="detail-row"><label class="detail-label">Notes</label><textarea id="editNotes" class="edit-input" readonly style="min-height:70px; resize:none;">${p.notes || ''}</textarea></div>
-            `;
-            document.getElementById('detailsModal').style.display = 'block';
-            document.getElementById('overlay').style.display = 'block';
-            resetSecurity();
-        }
-
-        // TOGGLE BLACKLIST
-        document.getElementById('blacklistBtn').onclick = async function() {
-            if(!confirm("Changer le statut de blacklist de ce client ?")) return;
-            const currentStatus = currentEvent.extendedProps.clients.is_blacklisted;
-            const { error } = await supabaseClient.from('clients').update({ is_blacklisted: !currentStatus }).eq('id', currentEvent.extendedProps.clients.id);
-            if(!error) { alert("Statut client mis à jour"); window.cal.refetchEvents(); closeModal(); }
-        };
-
-        // ANNULER RDV
-        document.getElementById('cancelBtn').onclick = async function() {
-            if(!confirm("Annuler définitivement ce rendez-vous ?")) return;
-            const { error } = await supabaseClient.from('appointments').update({ status: 'cancelled' }).eq('id', currentEvent.id);
-            if(!error) { window.cal.refetchEvents(); closeModal(); }
-        };
-
-        document.getElementById('unlockToggle').onclick = function() {
-            const isL = this.innerText.includes('🔒');
-            document.querySelectorAll('.edit-input').forEach(i => { i.readOnly = !isL; i.classList.toggle('unlocked', isL); });
-            this.innerText = isL ? "🔓 MODIFICATION" : "🔒 DÉVERROUILLER";
-            this.classList.toggle('active', isL);
-            document.getElementById('saveBtn').classList.toggle('ready', isL);
-        };
-
-        document.getElementById('saveBtn').onclick = async function() {
-            const up1 = supabaseClient.from('appointments').update({ 
-                beneficiary_name: document.getElementById('editBene').value, 
-                notes: document.getElementById('editNotes').value,
-                start_time: document.getElementById('editStart').value,
-                end_time: document.getElementById('editEnd').value,
-                updated_at: new Date().toISOString()
-            }).eq('id', currentEvent.id);
-            const up2 = supabaseClient.from('clients').update({ name: document.getElementById('editClient').value, phone_number: document.getElementById('editPhone').value }).eq('id', currentEvent.extendedProps.clients.id);
-            const res = await Promise.all([up1, up2]);
-            if(!res.some(r => r.error)) { window.cal.refetchEvents(); closeModal(); }
-        };
-
-        function resetSecurity() { const ut = document.getElementById('unlockToggle'); ut.innerText = "🔒 DÉVERROUILLER"; ut.classList.remove('active'); document.getElementById('saveBtn').classList.remove('ready'); }
-        function closeModal() { document.getElementById('detailsModal').style.display = 'none'; document.getElementById('overlay').style.display = 'none'; }
-        window.onload = init;
-    </script>
+    function resetLock() { 
+        document.getElementById('unlockToggle').innerText = "🔒 DÉVERROUILLER"; 
+        document.getElementById('unlockToggle').classList.remove('active');
+        document.getElementById('saveBtn').classList.remove('ready');
+    }
+    function closeModal() { document.getElementById('detailsModal').style.display = 'none'; document.getElementById('overlay').style.display = 'none'; }
+    window.onload = init;
+</script>
 </body>
 </html>
