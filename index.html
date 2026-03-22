@@ -2,7 +2,7 @@
 <html lang='fr'>
 <head>
     <meta charset='utf-8' />
-    <title>L'Atelier Capillaire | Dashboard Pro</title>
+    <title>L'Atelier Capillaire | Gestion Sécurisée</title>
     
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        :root { --brand-dark: #0f172a; --brand-bg: #f8fafc; --brand-accent: #3b82f6; }
+        :root { --brand-dark: #0f172a; --brand-bg: #f8fafc; --accent: #3b82f6; }
 
         html, body { margin: 0; padding: 0; min-height: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--brand-bg); }
         .container { padding: 20px; box-sizing: border-box; }
@@ -19,7 +19,7 @@
 
         #calendar { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
 
-        /* --- STYLE DES RDV & EFFETS --- */
+        /* --- STYLE DES RDV --- */
         .fc-v-event {
             background-color: #ffffff !important;
             border: 1px solid #e2e8f0 !important;
@@ -29,41 +29,48 @@
             transition: all 0.1s ease !important;
         }
         .fc-v-event:hover { filter: brightness(0.95); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important; }
-
         .fc-event-title { color: var(--brand-dark) !important; font-weight: 700 !important; font-size: 0.85rem !important; }
 
-        /* --- MODAL EDITABLE --- */
+        /* --- MODAL --- */
         #detailsModal {
             display: none; position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             background: white; border-radius: 24px;
             box-shadow: 0 30px 60px rgba(0,0,0,0.3);
-            z-index: 2000; width: 90%; max-width: 400px; overflow: hidden;
+            z-index: 2000; width: 90%; max-width: 420px; overflow: hidden;
         }
 
-        .modal-header { background: var(--brand-dark); color: white; padding: 20px; font-weight: 800; display: flex; justify-content: space-between; }
-        .modal-body { padding: 25px; }
+        .modal-header { 
+            background: var(--brand-dark); color: white; padding: 20px; 
+            font-weight: 800; display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .modal-body { padding: 20px; max-height: 70vh; overflow-y: auto; }
         
-        .detail-row { display: flex; flex-direction: column; margin-bottom: 15px; }
-        .detail-label { color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+        .detail-row { margin-bottom: 15px; position: relative; }
+        .detail-label { color: #64748b; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; display: block; }
         
-        /* Inputs de modification */
+        /* Inputs Verrouillés par défaut */
         .edit-input {
-            width: 100%; padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px;
-            font-family: inherit; font-size: 0.95rem; font-weight: 600; color: var(--brand-dark);
-            box-sizing: border-box; transition: border-color 0.2s;
+            width: 100%; padding: 12px; border: 1.5px solid #f1f5f9; border-radius: 10px;
+            font-family: inherit; font-size: 0.9rem; font-weight: 700; color: var(--brand-dark);
+            box-sizing: border-box; background: #f8fafc; cursor: not-allowed;
         }
-        .edit-input:focus { outline: none; border-color: var(--brand-accent); }
-        textarea.edit-input { min-height: 80px; resize: vertical; }
+        
+        /* État Déverrouillé */
+        .edit-input.unlocked {
+            background: white; border-color: var(--accent); cursor: text;
+        }
 
-        .modal-footer { display: flex; gap: 10px; padding: 0 25px 25px; }
-        .btn { 
-            flex: 1; border: none; padding: 14px; border-radius: 12px; 
-            font-weight: 800; cursor: pointer; transition: opacity 0.2s; 
+        .unlock-toggle {
+            font-size: 0.7rem; color: var(--accent); cursor: pointer; text-decoration: underline; font-weight: 700;
         }
-        .btn-save { background: var(--brand-dark); color: white; }
-        .btn-close { background: #f1f5f9; color: #64748b; }
-        .btn:hover { opacity: 0.9; }
+
+        .modal-footer { display: flex; gap: 10px; padding: 15px 20px 20px; background: #f8fafc; }
+        .btn { flex: 1; border: none; padding: 14px; border-radius: 12px; font-weight: 800; cursor: pointer; }
+        .btn-save { background: var(--brand-dark); color: white; opacity: 0.5; pointer-events: none; }
+        .btn-save.active { opacity: 1; pointer-events: auto; }
+        .btn-close { background: white; color: #64748b; border: 1px solid #e2e8f0; }
 
         #overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -80,11 +87,14 @@
 
     <div id="overlay" onclick="closeModal()"></div>
     <div id="detailsModal">
-        <div class="modal-header"><span>Modifier RDV</span></div>
+        <div class="modal-header">
+            <span>Détails Rendez-vous</span>
+            <span id="unlockAll" class="unlock-toggle" style="color: #60a5fa;">🔓 DÉVERROUILLER</span>
+        </div>
         <div class="modal-body" id="modalContent">
             </div>
         <div class="modal-footer">
-            <button class="btn btn-close" onclick="closeModal()">ANNULER</button>
+            <button class="btn btn-close" onclick="closeModal()">FERMER</button>
             <button class="btn btn-save" id="saveBtn">ENREGISTRER</button>
         </div>
     </div>
@@ -111,76 +121,102 @@
                     currentEvent = info.event;
                     const p = currentEvent.extendedProps;
                     
-                    const content = `
+                    document.getElementById('modalContent').innerHTML = `
                         <div class="detail-row">
-                            <label class="detail-label">Bénéficiaire (Modifier)</label>
-                            <input type="text" id="editBeneficiary" class="edit-input" value="${p.beneficiary || ''}">
+                            <label class="detail-label">Nom du Bénéficiaire</label>
+                            <input type="text" id="editBeneficiary" class="edit-input" value="${p.beneficiary || ''}" readonly>
                         </div>
                         <div class="detail-row">
-                            <label class="detail-label">Notes / Instructions</label>
-                            <textarea id="editNotes" class="edit-input">${p.notes || ''}</textarea>
+                            <label class="detail-label">Numéro de Téléphone</label>
+                            <input type="text" id="editPhone" class="edit-input" value="${p.phone || ''}" readonly>
                         </div>
-                        <div class="detail-row" style="opacity: 0.6">
-                            <label class="detail-label">Client d'origine : ${p.clientName}</label>
-                            <div style="font-size:0.8rem; font-weight:700;">Tél: ${p.phone}</div>
+                        <div class="detail-row">
+                            <label class="detail-label">Prestation</label>
+                            <input type="text" id="editService" class="edit-input" value="${p.serviceName || ''}" readonly>
+                        </div>
+                        <div class="detail-row">
+                            <label class="detail-label">Notes de l'Agent IA</label>
+                            <textarea id="editNotes" class="edit-input" readonly style="min-height:80px;">${p.notes || ''}</textarea>
                         </div>
                     `;
-                    document.getElementById('modalContent').innerHTML = content;
+                    
+                    document.getElementById('saveBtn').classList.remove('active');
                     document.getElementById('detailsModal').style.display = 'block';
                     document.getElementById('overlay').style.display = 'block';
-                },
-
-                events: async function(info, successCallback, failureCallback) {
-                    try {
-                        const { data, error } = await supabaseClient
-                            .from('appointments')
-                            .select('id, start_time, end_time, beneficiary_name, notes, clients(name, phone_number), services(name)')
-                            .neq('status', 'cancelled');
-
-                        if (error) throw error;
-
-                        const events = (data || []).map(appt => ({
-                            id: appt.id,
-                            title: (appt.beneficiary_name || appt.clients?.name) + " (" + (appt.services?.name || 'Soin') + ")",
-                            start: appt.start_time,
-                            end: appt.end_time,
-                            extendedProps: {
-                                clientName: appt.clients?.name || 'Inconnu',
-                                beneficiary: appt.beneficiary_name || '',
-                                phone: appt.clients?.phone_number || '-',
-                                notes: appt.notes || ''
-                            }
-                        }));
-                        successCallback(events);
-                    } catch (err) { failureCallback(err); }
                 }
             });
 
-            calendar.render();
+            // GESTION DU DÉVERROUILLAGE
+            document.getElementById('unlockAll').onclick = function() {
+                const inputs = document.querySelectorAll('.edit-input');
+                inputs.forEach(input => {
+                    input.readOnly = false;
+                    input.classList.add('unlocked');
+                });
+                document.getElementById('saveBtn').classList.add('active');
+                this.innerText = "🔒 MODIFICATION ACTIVE";
+            };
 
-            // Action de sauvegarde
+            // SAUVEGARDE
             document.getElementById('saveBtn').onclick = async function() {
-                const newBeneficiary = document.getElementById('editBeneficiary').value;
-                const newNotes = document.getElementById('editNotes').value;
+                const bene = document.getElementById('editBeneficiary').value;
+                const note = document.getElementById('editNotes').value;
+                const phone = document.getElementById('editPhone').value;
                 const eventId = currentEvent.id;
+                const clientId = currentEvent.extendedProps.clientId;
 
-                const { error } = await supabaseClient
+                // 1. Update RDV
+                const updateAppt = supabaseClient
                     .from('appointments')
-                    .update({ beneficiary_name: newBeneficiary, notes: newNotes })
+                    .update({ beneficiary_name: bene, notes: note })
                     .eq('id', eventId);
 
-                if (error) {
+                // 2. Update Client (pour le numéro)
+                const updateClient = supabaseClient
+                    .from('clients')
+                    .update({ phone_number: phone })
+                    .eq('id', clientId);
+
+                const results = await Promise.all([updateAppt, updateClient]);
+
+                if (results.some(r => r.error)) {
                     alert("Erreur lors de la mise à jour");
                 } else {
-                    calendar.refetchEvents(); // Recharge les données
+                    calendar.refetchEvents();
                     closeModal();
                 }
             };
+
+            // CHARGEMENT DES DONNÉES
+            calendar.setOption('events', async (info, success) => {
+                const { data } = await supabaseClient
+                    .from('appointments')
+                    .select('id, start_time, end_time, beneficiary_name, notes, client_id, clients(id, name, phone_number), services(name)')
+                    .neq('status', 'cancelled');
+
+                success((data || []).map(appt => ({
+                    id: appt.id,
+                    title: (appt.beneficiary_name || appt.clients?.name) + " (" + (appt.services?.name || 'Soin') + ")",
+                    start: appt.start_time,
+                    end: appt.end_time,
+                    extendedProps: {
+                        clientName: appt.clients?.name || 'Inconnu',
+                        clientId: appt.clients?.id,
+                        beneficiary: appt.beneficiary_name || '',
+                        phone: appt.clients?.phone_number || '-',
+                        serviceName: appt.services?.name || 'Soin',
+                        notes: appt.notes || ''
+                    }
+                })));
+            });
+
+            calendar.render();
         };
 
         function closeModal() {
             document.getElementById('detailsModal').style.display = 'none';
             document.getElementById('overlay').style.display = 'none';
+            document.getElementById('unlockAll').innerText = "🔓 DÉVERROUILLER";
         }
     </script>
 </body>
