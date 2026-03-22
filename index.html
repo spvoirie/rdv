@@ -17,56 +17,139 @@
             --success: #10b981; 
             --danger: #ef4444; 
             --border: #e2e8f0;
+            --accent: #3b82f6;
         }
         
-        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--brand-bg); color: var(--brand-dark); }
+        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--brand-bg); color: var(--brand-dark); -webkit-tap-highlight-color: transparent; }
         .container { padding: 25px; max-width: 1600px; margin: auto; }
 
         /* HEADER & TOP BAR */
         .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .rappel-pill { background: #fff1f2; color: var(--danger); padding: 8px 16px; border-radius: 100px; font-weight: 800; font-size: 0.75rem; border: 1px solid #fecdd3; cursor: pointer; transition: 0.2s; }
-        .rappel-pill:hover { transform: scale(1.05); background: var(--danger); color: white; }
+        .rappel-pill { 
+            background: #fff1f2; color: var(--danger); padding: 8px 16px; border-radius: 100px; 
+            font-weight: 800; font-size: 0.75rem; border: 1px solid #fecdd3; 
+            cursor: pointer; transition: all 0.2s ease; 
+        }
+        /* Surbrillance pilule rappel */
+        .rappel-pill:hover { background: var(--danger); color: white; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
+        .rappel-pill:active { transform: translateY(0); scale: 0.98; }
 
         /* MODERN CALENDAR OVERRIDE */
         #calendar { background: white; border-radius: 24px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid var(--border); }
         .fc { --fc-border-color: #f1f5f9; --fc-button-bg-color: #ffffff; --fc-button-text-color: #0f172a; --fc-button-border-color: #e2e8f0; --fc-button-hover-bg-color: #f8fafc; }
-        .fc .fc-button-primary:not(:disabled).fc-button-active { background-color: var(--brand-dark) !important; color: white !important; border-color: var(--brand-dark) !important; }
-        .fc .fc-button { font-weight: 700 !important; text-transform: capitalize !important; border-radius: 10px !important; transition: 0.2s; }
+        
+        /* Style boutons calendrier par défaut */
+        .fc .fc-button { 
+            font-weight: 700 !important; text-transform: capitalize !important; 
+            border-radius: 10px !important; transition: all 0.2s ease; 
+            cursor: pointer !important; 
+        }
+        /* Surbrillance boutons calendrier */
+        .fc .fc-button:hover { background-color: #f1f5f9 !important; border-color: #cbd5e1 !important; transform: translateY(-1px); }
+        .fc .fc-button:active { transform: translateY(0); scale: 0.98; }
+        
+        /* Bouton actif calendrier */
+        .fc .fc-button-primary:not(:disabled).fc-button-active { background-color: var(--brand-dark) !important; color: white !important; border-color: var(--brand-dark) !important; transform: none !important; box-shadow: none !important; }
         
         /* RDV STYLE - TEXTE NOIR VISIBLE */
-        .fc-event { border: 1px solid var(--border) !important; border-radius: 8px !important; padding: 2px 4px !important; box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important; }
+        .fc-event { border: 1px solid var(--border) !important; border-radius: 8px !important; padding: 2px 4px !important; box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important; cursor: pointer !important; transition: all 0.2s ease !important; }
+        /* Surbrillance RDV */
+        .fc-event:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important; z-index: 5; }
+        
         .fc-event-main { color: var(--brand-dark) !important; font-weight: 700 !important; font-size: 0.8rem !important; padding: 4px !important; }
         .event-ok { border-left: 5px solid var(--success) !important; background: white !important; }
         .event-rappel { border-left: 5px solid var(--danger) !important; background: #fff1f2 !important; }
 
-        /* MODAL SOBRE */
-        #detailsModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 28px; z-index: 2000; width: 90%; max-width: 440px; box-shadow: 0 40px 80px rgba(0,0,0,0.2); overflow: hidden; }
+        /* MODAL PLUS LARGE */
+        #detailsModal { 
+            display: none; position: fixed; top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); 
+            background: white; border-radius: 28px; z-index: 2000; 
+            width: 90%; max-width: 550px; /* LARGEUR AUGMENTÉE */
+            box-shadow: 0 40px 80px rgba(0,0,0,0.2); overflow: hidden; 
+        }
         .modal-header { padding: 20px 25px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
         .modal-title { font-weight: 800; font-size: 1rem; color: var(--brand-dark); }
         
-        .unlock-badge { font-size: 0.65rem; font-weight: 800; padding: 6px 12px; border-radius: 8px; background: #f1f5f9; color: #64748b; cursor: pointer; transition: 0.2s; }
+        /* Badge déverrouiller */
+        .unlock-badge { 
+            font-size: 0.65rem; font-weight: 800; padding: 6px 12px; border-radius: 8px; 
+            background: #f1f5f9; color: #64748b; cursor: pointer; transition: all 0.2s ease; 
+        }
+        /* Surbrillance badge déverrouiller */
+        .unlock-badge:hover { background: #e2e8f0; color: var(--brand-dark); transform: scale(1.05); }
         .unlock-badge.active { background: var(--brand-dark); color: white; }
+        .unlock-badge.active:hover { background: #1e293b; }
 
         .modal-body { padding: 25px; }
         .input-group { margin-bottom: 18px; }
         .label { font-size: 0.65rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; display: block; }
-        .field { width: 100%; border: 1.5px solid #f1f5f9; padding: 12px; border-radius: 12px; font-weight: 700; background: #f8fafc; font-family: inherit; box-sizing: border-box; font-size: 15px; transition: 0.2s; outline: none; }
-        .field.unlocked { background: white; border-color: #cbd5e1; }
-        .field[readonly] { color: #64748b; }
+        
+        /* Inputs */
+        .field { 
+            width: 100%; border: 1.5px solid #f1f5f9; padding: 12px; border-radius: 12px; 
+            font-weight: 700; background: #f8fafc; font-family: inherit; box-sizing: border-box; 
+            font-size: 15px; transition: all 0.2s ease; outline: none; 
+        }
+        .field[readonly] { color: #64748b; cursor: not-allowed; }
+        
+        /* Inputs déverrouillés cliquables */
+        .field.unlocked { background: white; border-color: #cbd5e1; cursor: text; }
+        .field.unlocked:hover { border-color: #94a3b8; }
+        .field.unlocked:focus { border-color: var(--brand-dark); box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1); }
+        
+        /* Cas spécifique datetime-local unlocked */
+        input[type="datetime-local"].field.unlocked { cursor: pointer; }
+
+        /* Icône appel */
+        #callLink { 
+            background: var(--brand-dark); padding: 12px; border-radius: 12px; 
+            color: white; text-decoration: none; cursor: pointer; 
+            transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;
+        }
+        /* Surbrillance icône appel */
+        #callLink:hover { background: #1e293b; transform: scale(1.1); box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2); }
+        #callLink:active { transform: scale(1); }
 
         /* ACTIONS EN BAS DE FICHE */
         .danger-zone { display: flex; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px dotted #e2e8f0; }
-        .mini-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #f1f5f9; font-size: 0.7rem; font-weight: 800; cursor: pointer; transition: 0.2s; background: white; color: #64748b; }
-        .mini-btn:hover { background: #f8fafc; }
-        .mini-btn.banned { color: var(--danger); border-color: #fee2e2; }
+        
+        /* Mini boutons (blacklist, annuler) */
+        .mini-btn { 
+            flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #f1f5f9; 
+            font-size: 0.7rem; font-weight: 800; cursor: pointer; 
+            transition: all 0.2s ease; background: white; color: #64748b; 
+        }
+        /* Surbrillance mini boutons */
+        .mini-btn:hover { background: #f1f5f9; color: var(--brand-dark); border-color: #cbd5e1; transform: translateY(-1px); }
+        .mini-btn:active { transform: translateY(0); scale: 0.98; }
+        
+        /* Style banni */
+        .mini-btn.banned { color: var(--danger); border-color: #fee2e2; background: #fff1f2; }
+        .mini-btn.banned:hover { background: #fee2e2; border-color: #fecdd3; }
 
+        /* FOOTER & BOUTONS PRINCIPAUX */
         .modal-footer { padding: 0 25px 25px; display: flex; gap: 10px; }
-        .btn-main { flex: 1; border: none; padding: 15px; border-radius: 14px; font-weight: 800; cursor: pointer; transition: 0.3s; font-size: 0.9rem; }
+        .btn-main { 
+            flex: 1; border: none; padding: 15px; border-radius: 14px; 
+            font-weight: 800; cursor: pointer; transition: all 0.2s ease; 
+            font-size: 0.9rem; outline: none; 
+        }
+        
+        /* Bouton Fermer */
+        .btn-close { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+        .btn-close:hover { background: #e2e8f0; color: var(--brand-dark); border-color: #cbd5e1; transform: translateY(-1px); }
+        .btn-close:active { transform: translateY(0); scale: 0.98; }
+        
+        /* Bouton Enregistrer */
         .btn-save { background: var(--brand-dark); color: white; opacity: 0.15; pointer-events: none; }
-        .btn-save.ready { opacity: 1; pointer-events: auto; box-shadow: 0 8px 15px rgba(15,23,42,0.2); }
-        .btn-save.ready:active { transform: scale(0.97); }
+        .btn-save.ready { opacity: 1; pointer-events: auto; }
+        /* Surbrillance Enregistrer ready */
+        .btn-save.ready:hover { background: #1e293b; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(15,23,42,0.2); }
+        .btn-save.ready:active { transform: translateY(0); scale: 0.97; }
 
-        #overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.3); backdrop-filter: blur(4px); z-index: 1000; }
+        /* OVERLAY */
+        #overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.3); backdrop-filter: blur(4px); z-index: 1000; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -101,7 +184,7 @@
             <span class="label">Contact</span>
             <div style="display:flex; gap:8px;">
                 <input type="text" id="editPhone" class="field" readonly>
-                <a id="callLink" href="#" style="background:var(--brand-dark); padding:12px; border-radius:12px; color:white; text-decoration:none;">📞</a>
+                <a id="callLink" href="#">📞</a>
             </div>
         </div>
         <div style="display:flex; gap:12px;">
@@ -119,7 +202,7 @@
         </div>
     </div>
     <div class="modal-footer">
-        <button class="btn-main" style="background:#f1f5f9; color:#64748b;" onclick="closeModal()">Fermer</button>
+        <button class="btn-main btn-close" onclick="closeModal()">Fermer</button>
         <button class="btn-main btn-save" id="saveBtn">Enregistrer</button>
     </div>
 </div>
