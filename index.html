@@ -2,7 +2,7 @@
 <html lang='fr'>
 <head>
     <meta charset='utf-8' />
-    <title>L'Atelier Capillaire | Dashboard Final</title>
+    <title>L'Atelier Capillaire | Dashboard Pro</title>
     
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -10,189 +10,120 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        :root {
-            --brand-dark: #0f172a;
-            --brand-bg: #f8fafc;
-        }
+        :root { --brand-dark: #0f172a; --brand-bg: #f8fafc; --brand-accent: #3b82f6; }
 
-        html, body { 
-            margin: 0; padding: 0; min-height: 100%;
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: var(--brand-bg);
-            overflow-y: auto; 
-            -webkit-overflow-scrolling: touch;
-        }
-
+        html, body { margin: 0; padding: 0; min-height: 100%; font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--brand-bg); }
         .container { padding: 20px; box-sizing: border-box; }
         header { margin-bottom: 20px; padding: 0 10px; }
         h2 { font-size: 1.6rem; font-weight: 800; color: var(--brand-dark); }
 
-        #calendar {
-            background: white;
-            border-radius: 20px;
-            padding: 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-        }
+        #calendar { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
 
-        /* --- STYLE DES RDV & EFFETS SURVOL --- */
+        /* --- STYLE DES RDV & EFFETS --- */
         .fc-v-event {
             background-color: #ffffff !important;
             border: 1px solid #e2e8f0 !important;
             border-left: 5px solid var(--brand-dark) !important;
             border-radius: 8px !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
-            cursor: pointer !important; /* Curseur main / doigt */
-            transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease !important;
+            cursor: pointer !important;
+            transition: all 0.1s ease !important;
         }
+        .fc-v-event:hover { filter: brightness(0.95); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important; }
 
-        /* Effet de surbrillance et léger zoom au survol (PC) */
-        .fc-v-event:hover {
-            filter: brightness(0.95);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
-            z-index: 5 !important;
-        }
+        .fc-event-title { color: var(--brand-dark) !important; font-weight: 700 !important; font-size: 0.85rem !important; }
 
-        /* Feedback visuel pour le toucher (Tablette/Mobile) */
-        .fc-v-event:active {
-            transform: scale(0.98);
-            filter: brightness(0.9);
-        }
-
-        .fc-event-main { padding: 4px !important; }
-        .fc-event-title {
-            color: var(--brand-dark) !important; 
-            font-weight: 700 !important;
-            font-size: 0.85rem !important;
-            white-space: normal !important;
-        }
-
-        /* --- STYLE DES HEURES --- */
-        .fc-timegrid-slot-label-cushion, .fc-timegrid-axis-cushion {
-            color: var(--brand-dark) !important;
-            font-weight: 700 !important;
-        }
-
-        /* --- BOUTONS --- */
-        .fc-button {
-            background: white !important;
-            color: var(--brand-dark) !important;
-            border: 1px solid #e2e8f0 !important;
-            border-radius: 10px !important;
-            font-weight: 700 !important;
-            transition: all 0.2s !important;
-        }
-
-        .fc-button-active {
-            background: var(--brand-dark) !important;
-            color: white !important;
-            border-color: var(--brand-dark) !important;
-        }
-
-        /* --- EN-TÊTES --- */
-        .fc-col-header-cell-cushion {
-            color: var(--brand-dark) !important;
-            font-weight: 800 !important;
-            text-transform: capitalize;
-            padding: 10px 0 !important;
-            text-decoration: none !important;
-        }
-
-        /* --- MODAL --- */
+        /* --- MODAL EDITABLE --- */
         #detailsModal {
             display: none; position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             background: white; border-radius: 24px;
             box-shadow: 0 30px 60px rgba(0,0,0,0.3);
-            z-index: 2000; width: 90%; max-width: 400px;
-            overflow: hidden;
+            z-index: 2000; width: 90%; max-width: 400px; overflow: hidden;
         }
 
-        .modal-header { background: var(--brand-dark); color: white; padding: 20px; font-weight: 800; }
+        .modal-header { background: var(--brand-dark); color: white; padding: 20px; font-weight: 800; display: flex; justify-content: space-between; }
         .modal-body { padding: 25px; }
-        .detail-row { display: flex; flex-direction: column; margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
-        .detail-label { color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
-        .detail-value { font-weight: 700; color: var(--brand-dark); font-size: 1rem; margin-top: 2px; }
         
+        .detail-row { display: flex; flex-direction: column; margin-bottom: 15px; }
+        .detail-label { color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+        
+        /* Inputs de modification */
+        .edit-input {
+            width: 100%; padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+            font-family: inherit; font-size: 0.95rem; font-weight: 600; color: var(--brand-dark);
+            box-sizing: border-box; transition: border-color 0.2s;
+        }
+        .edit-input:focus { outline: none; border-color: var(--brand-accent); }
+        textarea.edit-input { min-height: 80px; resize: vertical; }
+
+        .modal-footer { display: flex; gap: 10px; padding: 0 25px 25px; }
+        .btn { 
+            flex: 1; border: none; padding: 14px; border-radius: 12px; 
+            font-weight: 800; cursor: pointer; transition: opacity 0.2s; 
+        }
+        .btn-save { background: var(--brand-dark); color: white; }
+        .btn-close { background: #f1f5f9; color: #64748b; }
+        .btn:hover { opacity: 0.9; }
+
         #overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); z-index: 1000;
-        }
-
-        .close-btn { 
-            width: 100%; border: none; padding: 18px; background: #f8fafc;
-            font-weight: 800; color: var(--brand-dark); cursor: pointer;
-        }
-
-        /* Responsive spécifique Tablette/Mobile */
-        @media (max-width: 768px) {
-            .fc-header-toolbar {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-            }
-            h2 { font-size: 1.3rem; text-align: center; }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <header>
-            <h2>L'Atelier Capillaire</h2>
-        </header>
+        <header><h2>L'Atelier Capillaire</h2></header>
         <div id='calendar'></div>
     </div>
 
     <div id="overlay" onclick="closeModal()"></div>
     <div id="detailsModal">
-        <div class="modal-header">Fiche Rendez-vous</div>
-        <div class="modal-body" id="modalContent"></div>
-        <button class="close-btn" onclick="closeModal()">FERMER</button>
+        <div class="modal-header"><span>Modifier RDV</span></div>
+        <div class="modal-body" id="modalContent">
+            </div>
+        <div class="modal-footer">
+            <button class="btn btn-close" onclick="closeModal()">ANNULER</button>
+            <button class="btn btn-save" id="saveBtn">ENREGISTRER</button>
+        </div>
     </div>
 
     <script>
-        window.onload = function() {
-            const SB_URL = 'https://ysxawicsmdpirvalczmv.supabase.co';
-            const SB_KEY = 'sb_publishable_GgDD8xm-IDHVVRvC-js2WA_WSZe0iCp';
-            const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+        const SB_URL = 'https://ysxawicsmdpirvalczmv.supabase.co';
+        const SB_KEY = 'sb_publishable_GgDD8xm-IDHVVRvC-js2WA_WSZe0iCp';
+        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+        let currentEvent = null;
 
+        window.onload = function() {
             const calendarEl = document.getElementById('calendar');
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'timeGridWeek',
                 locale: 'fr',
                 timeZone: 'local',
-                firstDay: 1, 
-                allDaySlot: false,
+                firstDay: 1,
                 slotMinTime: '09:00:00',
                 slotMaxTime: '19:00:00',
-                expandRows: true,
                 height: 'auto',
-                handleWindowResize: true,
-                longPressDelay: 1, // Réduit le délai pour le tactile
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                },
-                buttonText: {
-                    today: "Aujourd'hui", month: "Mois", week: "Semaine", day: "Jour",
-                    prev: "Précédent", next: "Suivant"
-                },
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'timeGridWeek,timeGridDay' },
                 
                 eventClick: function(info) {
-                    const p = info.event.extendedProps;
-                    const formatTime = (date) => date.toLocaleTimeString('fr-FR', { 
-                        hour: '2-digit', minute: '2-digit' 
-                    });
+                    currentEvent = info.event;
+                    const p = currentEvent.extendedProps;
                     
                     const content = `
-                        <div class="detail-row"><div class="detail-label">Client (Appelant)</div><div class="detail-value">${p.clientName || 'Inconnu'}</div></div>
-                        <div class="detail-row"><div class="detail-label">Bénéficiaire</div><div class="detail-value">${p.beneficiary || 'Identique'}</div></div>
-                        <div class="detail-row"><div class="detail-label">Numéro</div><div class="detail-value">${p.phone || '-'}</div></div>
-                        <div class="detail-row"><div class="detail-label">Prestation</div><div class="detail-value">${p.service || 'Soin'}</div></div>
-                        <div class="detail-row"><div class="detail-label">Notes IA</div><div class="detail-value" style="font-weight:500; color:#475569;">${p.notes || 'Aucune note'}</div></div>
-                        <div class="detail-row" style="border:none"><div class="detail-label">Horaire</div><div class="detail-value">${formatTime(info.event.start)} — ${formatTime(info.event.end)}</div></div>
+                        <div class="detail-row">
+                            <label class="detail-label">Bénéficiaire (Modifier)</label>
+                            <input type="text" id="editBeneficiary" class="edit-input" value="${p.beneficiary || ''}">
+                        </div>
+                        <div class="detail-row">
+                            <label class="detail-label">Notes / Instructions</label>
+                            <textarea id="editNotes" class="edit-input">${p.notes || ''}</textarea>
+                        </div>
+                        <div class="detail-row" style="opacity: 0.6">
+                            <label class="detail-label">Client d'origine : ${p.clientName}</label>
+                            <div style="font-size:0.8rem; font-weight:700;">Tél: ${p.phone}</div>
+                        </div>
                     `;
                     document.getElementById('modalContent').innerHTML = content;
                     document.getElementById('detailsModal').style.display = 'block';
@@ -203,35 +134,48 @@
                     try {
                         const { data, error } = await supabaseClient
                             .from('appointments')
-                            .select('start_time, end_time, beneficiary_name, notes, clients(name, phone_number), services(name)')
+                            .select('id, start_time, end_time, beneficiary_name, notes, clients(name, phone_number), services(name)')
                             .neq('status', 'cancelled');
 
                         if (error) throw error;
 
-                        const events = (data || []).map(appt => {
-                            const cleanStart = appt.start_time.substring(0, 19);
-                            const cleanEnd = appt.end_time.substring(0, 19);
-                            const displayName = appt.beneficiary_name || appt.clients?.name || 'Client';
-
-                            return {
-                                title: displayName + " (" + (appt.services?.name || 'Soin') + ")",
-                                start: cleanStart,
-                                end: cleanEnd,
-                                extendedProps: {
-                                    clientName: appt.clients?.name || 'Inconnu',
-                                    beneficiary: appt.beneficiary_name || 'Identique',
-                                    phone: appt.clients?.phone_number || '-',
-                                    service: appt.services?.name || 'Soin',
-                                    notes: appt.notes || ''
-                                }
-                            };
-                        });
+                        const events = (data || []).map(appt => ({
+                            id: appt.id,
+                            title: (appt.beneficiary_name || appt.clients?.name) + " (" + (appt.services?.name || 'Soin') + ")",
+                            start: appt.start_time,
+                            end: appt.end_time,
+                            extendedProps: {
+                                clientName: appt.clients?.name || 'Inconnu',
+                                beneficiary: appt.beneficiary_name || '',
+                                phone: appt.clients?.phone_number || '-',
+                                notes: appt.notes || ''
+                            }
+                        }));
                         successCallback(events);
                     } catch (err) { failureCallback(err); }
                 }
             });
 
             calendar.render();
+
+            // Action de sauvegarde
+            document.getElementById('saveBtn').onclick = async function() {
+                const newBeneficiary = document.getElementById('editBeneficiary').value;
+                const newNotes = document.getElementById('editNotes').value;
+                const eventId = currentEvent.id;
+
+                const { error } = await supabaseClient
+                    .from('appointments')
+                    .update({ beneficiary_name: newBeneficiary, notes: newNotes })
+                    .eq('id', eventId);
+
+                if (error) {
+                    alert("Erreur lors de la mise à jour");
+                } else {
+                    calendar.refetchEvents(); // Recharge les données
+                    closeModal();
+                }
+            };
         };
 
         function closeModal() {
